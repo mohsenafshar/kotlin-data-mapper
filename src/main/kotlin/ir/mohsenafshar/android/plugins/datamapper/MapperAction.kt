@@ -1,18 +1,87 @@
 package ir.mohsenafshar.android.plugins.datamapper
 
 //import ClassSelectionDialog
+
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.editor.Document
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
-import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiDirectory
-import com.intellij.psi.PsiFileFactory
-import com.intellij.psi.PsiManager
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.*
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtElement
+
+
+fun addFunctionToVirtualFile(project: Project, sourceClass: PsiElement) {
+    val ktElement = sourceClass as? KtElement
+    val ktFile = ktElement?.containingKtFile
+    val ktClass = sourceClass as? KtClass
+
+    if (ktFile != null && ktClass != null) {
+        val virtualFile: VirtualFile? = ktFile.virtualFile
+
+        if (virtualFile != null) {
+            WriteCommandAction.runWriteCommandAction(project) {
+                val document = FileDocumentManager.getInstance().getDocument(virtualFile)
+
+                if (document != null) {
+                    // Append the new function at the end of the document content
+                    val newFunction = """
+                        fun printHello() {
+                            println("Hello")
+                        }
+                    """.trimIndent()
+
+                    ApplicationManager.getApplication().runWriteAction {
+                        document.insertString(document.textLength, "\n\n$newFunction")
+                        FileDocumentManager.getInstance().saveDocument(document)
+                    }
+                } else {
+                    println("Failed to retrieve document from VirtualFile.")
+                }
+            }
+        } else {
+            println("Failed to retrieve VirtualFile from KtFile.")
+        }
+    } else {
+        println("Failed to get KtFile or KtClass from the source element.")
+    }
+}
+
+private fun my(event: AnActionEvent) {
+    val project: Project = event.getProject()!!
+    val file: VirtualFile = event.getData(PlatformDataKeys.VIRTUAL_FILE)!!
+    val document: Document = event.getData(PlatformDataKeys.EDITOR)?.getDocument()!!
+    try {
+        val newContent: String = document.getText() + "fun print(){ println(\"Hello world\") }"
+        val r = Runnable {
+            document.setReadOnly(false)
+            document.setText(newContent)
+        }
+        WriteCommandAction.runWriteCommandAction(project, r)
+    } catch (e: Exception) {
+    }
+}
+
+private fun appendGeneratedCode(project: Project, document: Document, generatedCode: String) {
+    try {
+        val newContent: String = document.getText() + generatedCode
+        val r = Runnable {
+            document.setReadOnly(false)
+            document.setText(newContent)
+        }
+        WriteCommandAction.runWriteCommandAction(project, r)
+    } catch (e: Exception) {
+    }
+}
+
 
 class MapperAction : AnAction() {
 
@@ -30,7 +99,12 @@ class MapperAction : AnAction() {
 
                 if (sourceClass != null && targetClass != null) {
                     val generatedCode = generateMappingCode(sourceClass, targetClass, isExtensionFunction)
-                    insertGeneratedCode(project, generatedCode)
+
+                    if (dialog.isSeparateFileGenerationEnabled()) {
+                        insertGeneratedCode(project, generatedCode)
+                    } else {
+                        appendGeneratedCode(project,dialog.getSourceClassDocument()!!, generatedCode)
+                    }
                 } else {
                     Messages.showMessageDialog(
                         project,
