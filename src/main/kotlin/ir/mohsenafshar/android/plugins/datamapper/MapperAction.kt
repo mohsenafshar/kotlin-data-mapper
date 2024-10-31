@@ -15,32 +15,6 @@ import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.kotlin.idea.KotlinLanguage
 
 class MapperAction : AnAction() {
-//    override fun actionPerformed(event: AnActionEvent) {
-//        val project = event.project ?: return
-//
-//        // Show the class selection dialog
-//        val dialog = ClassSelectionDialog(project)
-//        if (dialog.showAndGet()) {
-//            val (sourceClassName, targetClassName) = dialog.getSelectedClasses()
-//
-//            if (sourceClassName != null && targetClassName != null) {
-//                val sourceClass = findPsiClass(project, sourceClassName)
-//                val targetClass = findPsiClass(project, targetClassName)
-//
-//                if (sourceClass != null && targetClass != null) {
-//                    val generatedCode = generateMappingCode(sourceClass, targetClass)
-//                    insertGeneratedCode(project, generatedCode)
-//                } else {
-//                    Messages.showMessageDialog(
-//                        project,
-//                        "One or both classes not found",
-//                        "Error",
-//                        Messages.getErrorIcon()
-//                    )
-//                }
-//            }
-//        }
-//    }
 
     override fun actionPerformed(event: AnActionEvent) {
         val project = event.project ?: return
@@ -48,12 +22,14 @@ class MapperAction : AnAction() {
 
         if (dialog.showAndGet()) {
             val (sourceClassName, targetClassName) = dialog.getSelectedClasses()
+            val isExtensionFunction = dialog.isExtensionFunctionSelected()
+
             if (sourceClassName != null && targetClassName != null) {
                 val sourceClass = findPsiClass(project, sourceClassName)
                 val targetClass = findPsiClass(project, targetClassName)
 
                 if (sourceClass != null && targetClass != null) {
-                    val generatedCode = generateMappingCode(sourceClass, targetClass)
+                    val generatedCode = generateMappingCode(sourceClass, targetClass, isExtensionFunction)
                     insertGeneratedCode(project, generatedCode)
                 } else {
                     Messages.showMessageDialog(
@@ -72,49 +48,44 @@ class MapperAction : AnAction() {
             .findClass(className, GlobalSearchScope.allScope(project))
     }
 
-//    private fun findPsiClass(project: Project, className: String): PsiClass? {
-//        return JavaPsiFacade.getInstance(project)
-//            .findClass(className, GlobalSearchScope.allScope(project))
-//    }
-
-//    private fun generateMappingCode(sourceClass: PsiClass, targetClass: PsiClass): String {
-//        val sourceFields = sourceClass.fields.associateBy { it.name }
-//        val targetFields = targetClass.fields.map { it.name to it }.toMap()
-//
-//        val mappings = targetFields.keys.intersect(sourceFields.keys).joinToString(",\n") { fieldName ->
-//            "$fieldName = ${sourceClass.name?.decapitalize()}.${fieldName}"
-//        }
-//
-//        return """
-//            fun map${sourceClass.name}To${targetClass.name}(${sourceClass.name?.decapitalize()}: ${sourceClass.name}): ${targetClass.name} {
-//                return ${targetClass.name}(
-//                    $mappings
-//                )
-//            }
-//        """.trimIndent()
-//    }
-
-    private fun generateMappingCode(sourceClass: PsiClass, targetClass: PsiClass): String {
+    private fun generateMappingCode(
+        sourceClass: PsiClass,
+        targetClass: PsiClass,
+        isExtensionFunction: Boolean
+    ): String {
         val mappings = targetClass.fields.joinToString(",\n") { field ->
             val sourceField = sourceClass.findFieldByName(field.name, true)
             if (sourceField != null) {
-                "${field.name} = ${sourceClass.name?.decapitalize()}.${field.name}"
+                if (isExtensionFunction) {
+                    "${field.name} = this.${field.name}"
+                } else {
+                    "${field.name} = ${sourceClass.name?.decapitalize()}.${field.name}"
+                }
             } else {
-//                "// Field ${field.name} not found in source class"
                 "${field.name} = null"
             }
         }
 
-        return """
+        return if (isExtensionFunction) {
+            """
+            fun ${sourceClass.name}.to${targetClass.name}(): ${targetClass.name} {
+                return ${targetClass.name}(
+                    $mappings
+                )
+            }
+        """.trimIndent()
+        } else {
+            """
             fun map${sourceClass.name}To${targetClass.name}(${sourceClass.name?.decapitalize()}: ${sourceClass.name}): ${targetClass.name} {
                 return ${targetClass.name}(
                     $mappings
                 )
             }
-        """//.trimIndent()
+        """.trimIndent()
+        }
     }
 
-        private fun insertGeneratedCode(project: Project, generatedCode: String) {
+    private fun insertGeneratedCode(project: Project, generatedCode: String) {
         val psiFileFactory = PsiFileFactory.getInstance(project)
         val file = psiFileFactory.createFileFromText(
             "GeneratedMapper.kt",

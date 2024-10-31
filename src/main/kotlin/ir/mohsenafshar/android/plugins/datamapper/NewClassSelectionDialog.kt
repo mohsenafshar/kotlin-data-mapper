@@ -8,15 +8,15 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.components.fields.ExpandableTextField
-import javax.swing.JButton
-import javax.swing.JComponent
-import javax.swing.JPanel
-import javax.swing.SwingConstants
 import java.awt.BorderLayout
+import java.awt.FlowLayout
+import javax.swing.*
 
 class NewClassSelectionDialog(private val project: Project) : DialogWrapper(project) {
     private var sourceClassField: JBTextField = JBTextField()
     private var targetClassField: JBTextField = JBTextField()
+    private var extensionFunctionRadio: JRadioButton = JRadioButton("Extension Function", true)
+    private var globalFunctionRadio: JRadioButton = JRadioButton("Global Function")
 
     init {
         title = "Select Classes for Mapping"
@@ -25,6 +25,16 @@ class NewClassSelectionDialog(private val project: Project) : DialogWrapper(proj
 
     override fun createCenterPanel(): JComponent {
         val panel = JPanel(BorderLayout())
+        val functionTypePanel = JPanel(FlowLayout()).apply {
+            add(extensionFunctionRadio)
+            add(globalFunctionRadio)
+
+            // Group the radio buttons to allow only one selection at a time
+            ButtonGroup().apply {
+                add(extensionFunctionRadio)
+                add(globalFunctionRadio)
+            }
+        }
 
         // Source Class Selection Button and Field
         val sourcePanel = JPanel(BorderLayout()).apply {
@@ -41,7 +51,8 @@ class NewClassSelectionDialog(private val project: Project) : DialogWrapper(proj
         }
 
         panel.add(sourcePanel, BorderLayout.NORTH)
-        panel.add(targetPanel, BorderLayout.SOUTH)
+        panel.add(targetPanel, BorderLayout.CENTER)
+        panel.add(functionTypePanel, BorderLayout.SOUTH)
         return panel
     }
 
@@ -58,5 +69,9 @@ class NewClassSelectionDialog(private val project: Project) : DialogWrapper(proj
 
     fun getSelectedClasses(): Pair<String?, String?> {
         return Pair(sourceClassField.text, targetClassField.text)
+    }
+
+    fun isExtensionFunctionSelected(): Boolean {
+        return extensionFunctionRadio.isSelected
     }
 }
