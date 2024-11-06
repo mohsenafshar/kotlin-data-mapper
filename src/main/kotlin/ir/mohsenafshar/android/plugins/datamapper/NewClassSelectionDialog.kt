@@ -114,7 +114,7 @@ class NewClassSelectionDialog(private val project: Project) : DialogWrapper(proj
     private fun createSelectClassButton(classField: JBTextField, dialogTitle: String): JButton {
         return JButton("...").apply {
             addActionListener {
-                val classChooser = TreeClassChooserFactory.getInstance(project).createAllProjectScopeChooser(dialogTitle)
+                val classChooser = TreeClassChooserFactory.getInstance(project).createAllProjectScopeChooser(dialogTitle) // todo: Search for kotlin data classes only
                 classChooser.showDialog()
                 val selectedClass = classChooser.selected
                 classField.text = selectedClass?.qualifiedName ?: ""
