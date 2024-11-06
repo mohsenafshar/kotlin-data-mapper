@@ -9,10 +9,49 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.psi.*
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.PsiUtil
+import org.jetbrains.kotlin.asJava.classes.KtLightClassForSourceDeclaration
 import org.jetbrains.kotlin.idea.KotlinLanguage
 
 
 class MapperAction : AnAction() {
+
+    private var sb = StringBuilder()
+
+    private fun PsiElement?.isKotlinDataClass(): Boolean {
+        this ?: return false
+
+        if (this is KtLightClassForSourceDeclaration) {
+            return kotlinOrigin.isData()
+        }
+        return false
+    }
+
+    private fun PsiType.asPsiClass(): PsiClass? = PsiUtil.resolveClassInType(this)
+
+    private fun build(sourceClass: PsiClass, targetClass: PsiClass, parentChainName: String) {
+
+        sourceClass.fields.forEach { sourceField ->
+            val targetField = targetClass.fields.find { it.name == sourceField.name }
+
+            if (sourceField.type.asPsiClass().isKotlinDataClass()) {
+                if (targetField == null || targetField.type.asPsiClass().isKotlinDataClass().not()) {
+                    sb.append("${sourceField.name} = null,")
+                } else {
+                    sb.append("${sourceField.name} = ${sourceField.type.asPsiClass()?.name}(")
+                    build(sourceField.type.asPsiClass()!!,targetField.type.asPsiClass()!!, "$parentChainName.${sourceField.name}")
+                    sb.append(")")
+                }
+            } else {
+                if (targetField == null) {
+                    sb.append("${sourceField.name} = null,")
+                } else {
+                    sb.append("${sourceField.name} = this${parentChainName}.${sourceField.name}" + ",")
+                }
+            }
+
+        }
+    }
 
     override fun actionPerformed(event: AnActionEvent) {
         val project = event.project ?: return
@@ -27,12 +66,15 @@ class MapperAction : AnAction() {
                 val targetClass = findPsiClass(project, targetClassName)
 
                 if (sourceClass != null && targetClass != null) {
-                    val generatedCode = generateMappingCode(sourceClass, targetClass, isExtensionFunction)
+//                    val generatedCode = generateMappingCode(sourceClass, targetClass, isExtensionFunction)
+                    sb.append("fun ${sourceClass.name}.to${targetClass.name}(): ${targetClass.name} { return ${targetClass.name}(")
+                    build(targetClass, sourceClass, "")
+                    sb.append(")}")
 
                     if (dialog.isSeparateFileGenerationEnabled()) {
-                        insertGeneratedCode(project, generatedCode)
+                        insertGeneratedCode(project, sb.toString())
                     } else {
-                        appendGeneratedCode(project, dialog.getSourceClassDocument()!!, generatedCode)
+                        appendGeneratedCode(project, dialog.getSourceClassDocument()!!, sb.toString())
                     }
                 } else {
                     Messages.showMessageDialog(

@@ -1,47 +1,129 @@
+import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
+import org.jetbrains.intellij.platform.gradle.models.ProductRelease
+import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask
+
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "1.9.24"
-    id("org.jetbrains.intellij") version "1.17.3"
+//    id("org.jetbrains.intellij") version "1.17.3"
+    id("org.jetbrains.intellij.platform")
 }
 
 group = "ir.mohsenafshar.android.plugins"
 version = "1.0.1-SNAPSHOT"
 
-repositories {
-    mavenCentral()
+
+dependencies {
+    intellijPlatform {
+//        intellijIdeaCommunity("2024.2.4")
+        local("H:\\Program Files\\JetBrains\\IntelliJ IDEA Community Edition 2024.2.4")
+
+        jetbrainsRuntime()
+        instrumentationTools()
+
+        bundledPlugin("com.intellij.java")
+        bundledPlugin("org.jetbrains.kotlin")
+
+        pluginVerifier()
+        zipSigner()
+    }
 }
 
 // Configure Gradle IntelliJ Plugin
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
-intellij {
-    version.set("2023.2.6")
-    type.set("IC") // Target IDE Platform
+//intellij {
+//    version.set("2023.2.6")
+//    type.set("IC") // Target IDE Platform
+//
+//    plugins.set(listOf("java", "org.jetbrains.kotlin"))
+//}
 
-    plugins.set(listOf("java", "org.jetbrains.kotlin"))
-}
+/*intellijPlatform {
+    buildSearchableOptions = true
+    instrumentCode = true
+    projectName = project.name
 
-tasks {
-    // Set the JVM compatibility versions
-    withType<JavaCompile> {
-        sourceCompatibility = "17"
-        targetCompatibility = "17"
+    pluginConfiguration {
+        id = "my-plugin-id"
+        name = "My Awesome Plugin"
+        version = "1.0.0"
+        description = "It's an awesome plugin!"
+        changeNotes =
+            """
+      A descriptive release note...
+      """.trimIndent()
+
+        productDescriptor {
+            code = "MY_CODE"
+            releaseDate = "20240217"
+            releaseVersion = "20241"
+            optional = false
+            eap = false
+        }
+        ideaVersion {
+            sinceBuild = "232"
+            untilBuild = "242.*"
+        }
+        vendor {
+            name = "JetBrains"
+            email = "hello@jetbrains.com"
+            url = "https://www.jetbrains.com"
+        }
     }
-    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-        kotlinOptions.jvmTarget = "17"
+
+    signing {
+        cliPath = file("/path/to/marketplace-zip-signer-cli.jar")
+        keyStore = file("/path/to/keyStore.ks")
+        keyStorePassword = "..."
+        keyStoreKeyAlias = "..."
+        keyStoreType = "..."
+        keyStoreProviderName = "..."
+        privateKey = "..."
+        privateKeyFile = file("/path/to/private.pem")
+        password = "..."
+        certificateChain = "..."
+        certificateChainFile = file("/path/to/chain.crt")
     }
 
-    patchPluginXml {
-        sinceBuild.set("232")
-        untilBuild.set("242.*")
-    }
-
-    signPlugin {
+    signing {
         certificateChainFile.set(file(System.getenv("CERTIFICATE_CHAIN")))
         privateKeyFile.set(file(System.getenv("PRIVATE_KEY")))
         password.set(System.getenv("PRIVATE_KEY_PASSWORD"))
     }
 
-    publishPlugin {
-        token.set(System.getenv("PUBLISH_TOKEN"))
+    publishing {
+        host = ""
+        token = System.getenv("PUBLISH_TOKEN")
+        channels = listOf("default")
+        ideServices = false
+        hidden = false
     }
-}
+
+    pluginVerification {
+        cliPath = file("/path/to/plugin-verifier-cli.jar")
+        freeArgs = listOf("foo", "bar")
+//        homeDirectory = file("/path/to/pluginVerifierHomeDirectory/")
+//        downloadDirectory = file("/path/to/pluginVerifierHomeDirectory/ides/")
+        failureLevel = VerifyPluginTask.FailureLevel.ALL
+//        verificationReportsDirectory = "build/reports/pluginVerifier"
+        verificationReportsFormats = VerifyPluginTask.VerificationReportsFormats.ALL
+//        externalPrefixes = "com.example"
+        teamCityOutputFormat = false
+        subsystemsToCheck = VerifyPluginTask.Subsystems.ALL
+        ignoredProblemsFile = file("/path/to/ignoredProblems.txt")
+
+        ides {
+            ide(IntelliJPlatformType.RustRover, "2023.3")
+            local(file("/path/to/ide/"))
+            recommended()
+            select {
+                types = listOf(IntelliJPlatformType.PhpStorm)
+                channels = listOf(ProductRelease.Channel.RELEASE)
+                sinceBuild = "232"
+                untilBuild = "241.*"
+            }
+        }
+    }
+
+}*/
+

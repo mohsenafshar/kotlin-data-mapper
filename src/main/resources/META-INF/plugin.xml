@@ -31,6 +31,10 @@
 
     </extensions>
 
+    <extensions defaultExtensionNs="org.jetbrains.kotlin">
+        <supportsKotlinPluginMode supportsK2="true" />
+    </extensions>
+
     <actions>
         <action id="GenerateMapperAction" class="ir.mohsenafshar.android.plugins.datamapper.MapperAction" text="Generate Mapper" description="Generates mapping code">
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
