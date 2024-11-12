@@ -5,7 +5,6 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.command.writeCommandAction
-import com.intellij.openapi.editor.Document
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.psi.*
@@ -24,7 +23,6 @@ import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
-import org.jetbrains.kotlin.psi.KtPackageDirective
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 
@@ -33,7 +31,6 @@ class MapperAction : AnAction() {
 
     private var sb = StringBuilder()
     private var prefix = "this"
-    private var targetFileName = "this"
     private var targetFile: KtFile? = null
 
 
@@ -42,11 +39,6 @@ class MapperAction : AnAction() {
         val dialog = NewClassSelectionDialog(project, event)
 
         sb = StringBuilder()
-
-        val vfile = dialog.getSelectedFileName()
-            ?.let { FilenameIndex.getVirtualFilesByName(it, GlobalSearchScope.allScope(project)) }?.first()
-
-        vfile?.toPsiFile(project)
 
         if (dialog.showAndGet()) {
             val (sourceClassName, targetClassName) = dialog.getSelectedClasses()
@@ -59,10 +51,6 @@ class MapperAction : AnAction() {
 
                 if (sourceClass != null && targetClass != null) {
                     prefix = if (isExtensionFunction) "this" else sourceClass.name!!.decapitalize()
-//                    val generatedCode = generateMappingCode(sourceClass, targetClass, isExtensionFunction)
-
-//                    sourceClass.add(targetClass)
-
                     targetFile = findKtFileByName(project, dialog.getSelectedFileName())
                         ?: (sourceClass as KtLightClassForSourceDeclaration).kotlinOrigin.containingKtFile
 
@@ -76,13 +64,7 @@ class MapperAction : AnAction() {
                         sb.append(")}")
                     }
 
-                    if (dialog.isSeparateFileGenerationEnabled()) {
-                        insertGeneratedCode(project, sb.toString(), sourceClass)
-                    } else {
-//                        appendGeneratedCode(project, dialog.getSourceClassDocument()!!, sb.toString())
-
-                        appendGeneratedCode1(project, dialog.getSelectedFileName(), sourceClass, targetClass)
-                    }
+                    appendGeneratedCode(project, dialog.getSelectedFileName(), sourceClass, targetClass)
                 } else {
                     Messages.showMessageDialog(
                         project,
@@ -95,7 +77,7 @@ class MapperAction : AnAction() {
         }
     }
 
-    private fun appendGeneratedCode1(
+    private fun appendGeneratedCode(
         project: Project,
         selectedFileName: String?,
         sourceClass: PsiClass,
@@ -162,43 +144,6 @@ class MapperAction : AnAction() {
             .findClass(className, GlobalSearchScope.allScope(project))
     }
 
-    private fun generateMappingCode(
-        sourceClass: PsiClass,
-        targetClass: PsiClass,
-        isExtensionFunction: Boolean
-    ): String {
-        val mappings = targetClass.fields.joinToString(",\n") { field ->
-            val sourceField = sourceClass.findFieldByName(field.name, true)
-            if (sourceField != null) {
-                if (isExtensionFunction) {
-                    "${field.name} = this.${field.name}"
-                } else {
-                    "${field.name} = ${sourceClass.name?.decapitalize()}.${field.name}"
-                }
-            } else {
-                "${field.name} = null"
-            }
-        }
-
-        return if (isExtensionFunction) {
-            """
-            fun ${sourceClass.name}.to${targetClass.name}(): ${targetClass.name} {
-                return ${targetClass.name}(
-                    $mappings
-                )
-            }
-        """.trimIndent()
-        } else {
-            """
-            fun map${sourceClass.name}To${targetClass.name}(${sourceClass.name?.decapitalize()}: ${sourceClass.name}): ${targetClass.name} {
-                return ${targetClass.name}(
-                    $mappings
-                )
-            }
-        """.trimIndent()
-        }
-    }
-
     private fun insertGeneratedCode(project: Project, generatedCode: String, sourceClass: PsiClass) {
         val psiFileFactory = PsiFileFactory.getInstance(project)
         val file = psiFileFactory.createFileFromText(
@@ -230,18 +175,6 @@ class MapperAction : AnAction() {
                     Messages.getErrorIcon()
                 )
             }
-        }
-    }
-
-    private fun appendGeneratedCode(project: Project, document: Document, generatedCode: String) {
-        try {
-            val newContent: String = document.getText() + generatedCode
-            val r = Runnable {
-                document.setReadOnly(false)
-                document.setText(newContent)
-            }
-            WriteCommandAction.runWriteCommandAction(project, r)
-        } catch (e: Exception) {
         }
     }
 
