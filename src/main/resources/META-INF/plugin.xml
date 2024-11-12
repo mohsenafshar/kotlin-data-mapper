@@ -40,4 +40,6 @@
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
         </action>
     </actions>
+    <!-- 2021.3, 2021.3.1, 2021.3.2, ... -->
+    <idea-version since-build="223" until-build="243.*"/>
 </idea-plugin>

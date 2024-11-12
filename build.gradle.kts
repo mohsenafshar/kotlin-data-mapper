@@ -1,6 +1,7 @@
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.models.ProductRelease
 import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask
+import org.jetbrains.kotlin.com.intellij.util.EnvironmentUtil
 
 plugins {
     id("java")
@@ -10,7 +11,7 @@ plugins {
 }
 
 group = "ir.mohsenafshar.android.plugins"
-version = "1.0.1-SNAPSHOT"
+version = "1.0.0-SNAPSHOT"
 
 
 dependencies {
@@ -26,6 +27,49 @@ dependencies {
 
         pluginVerifier()
         zipSigner()
+
+//        sameSinceUntilBuild.set(false) // Set this to true if the plugin is compatible across minor versions
+//        updateSinceUntilBuild.set(true) // Automatically adjusts the 'since' and 'until' build numbers
+//        sinceBuild.set("221") // Set the minimum supported version build number
+//        untilBuild.set("231.*") // Set the maximum supported version build number
+    }
+}
+
+
+intellijPlatform {
+    buildSearchableOptions = true
+    instrumentCode = true
+    projectName = project.name
+
+    pluginConfiguration {
+
+    }
+
+    signing {
+////        certificateChainFile.set(file(System.getenv("CERTIFICATE_CHAIN")))
+
+//        certificateChainFile = file(EnvironmentUtil.getValue("CERTIFICATE_CHAIN")!!)
+//        privateKeyFile = file(System.getenv("PRIVATE_KEY"))
+//        password = System.getenv("PRIVATE_KEY_PASSWORD")
+
+        certificateChainFile = file("chain.crt")
+        privateKeyFile = file("private.pem")
+        password = "admin123"
+    }
+
+    publishing {
+        token = System.getenv("PUBLISH_TOKEN")
+    }
+
+    pluginVerification {
+        ides {
+            recommended()
+            select {
+                types = listOf(IntelliJPlatformType.IntellijIdeaCommunity, IntelliJPlatformType.IntellijIdeaUltimate, IntelliJPlatformType.AndroidStudio)
+                sinceBuild = "213"
+                untilBuild = "243.*"
+            }
+        }
     }
 }
 
@@ -126,4 +170,17 @@ dependencies {
     }
 
 }*/
+
+tasks {
+    patchPluginXml {
+        sinceBuild = "231"
+        untilBuild = "243.*"
+    }
+}
+
+tasks.register("hello") {
+    doLast {
+        println("CERTIFICATE_CHAIN is: " + System.getenv("CERTIFICATE_CHAIN"))
+    }
+}
 

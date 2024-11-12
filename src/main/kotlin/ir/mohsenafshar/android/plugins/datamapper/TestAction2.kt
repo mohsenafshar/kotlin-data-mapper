@@ -27,7 +27,7 @@ class TestAction2 : AnAction() {
 
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return
-        val dialog = NewClassSelectionDialog(project)
+        val dialog = NewClassSelectionDialog(project, e)
         val psiManager = PsiManager.getInstance(project)
 
         if (dialog.showAndGet()) {
