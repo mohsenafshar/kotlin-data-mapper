@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "ir.mohsenafshar.toolkits.jetbrains"
-version = "1.0.0-SNAPSHOT"
+version = "0.2.0-beta1"
 
 
 dependencies {
@@ -27,13 +27,22 @@ dependencies {
 }
 
 
+//tasks {
+//    patchPluginXml {
+//        sinceBuild = "231"
+//        untilBuild = "243.*"
+//    }
+//}
+
 intellijPlatform {
     buildSearchableOptions = true
     instrumentCode = true
     projectName = project.name
 
     pluginConfiguration {
-
+        ideaVersion {
+            sinceBuild = "233"
+        }
     }
 
     signing {
@@ -165,11 +174,4 @@ intellijPlatform {
     }
 
 }*/
-
-tasks {
-    patchPluginXml {
-        sinceBuild = "231"
-//        untilBuild = "243.*"
-    }
-}
 

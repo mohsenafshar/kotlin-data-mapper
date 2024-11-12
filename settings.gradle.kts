@@ -28,4 +28,4 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "DataMapper"
+rootProject.name = "KotlinDataMapper"
