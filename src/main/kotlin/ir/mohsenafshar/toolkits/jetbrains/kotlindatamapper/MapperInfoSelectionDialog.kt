@@ -1,4 +1,4 @@
-package ir.mohsenafshar.toolkits.jetbrains.datamapper
+package ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper
 
 import com.intellij.ide.util.TreeClassChooserFactory
 import com.intellij.ide.util.TreeFileChooserFactory
