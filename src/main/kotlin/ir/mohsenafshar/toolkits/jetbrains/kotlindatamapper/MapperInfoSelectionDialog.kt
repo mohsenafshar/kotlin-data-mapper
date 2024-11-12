@@ -40,14 +40,14 @@ class MapperInfoSelectionDialog(private val project: Project, event: AnActionEve
 
         // Source Class Selection Panel
         val sourcePanel = JPanel(BorderLayout()).apply {
-            add(JBLabel("Source Class : ", SwingConstants.LEFT), BorderLayout.WEST)
+            add(JBLabel("From : ", SwingConstants.LEFT), BorderLayout.WEST)
             add(sourceClassField, BorderLayout.CENTER)
             add(createSelectClassButton(sourceClassField, "Select Source Class"), BorderLayout.EAST)
         }
 
         // Target Class Selection Panel
         val targetPanel = JPanel(BorderLayout()).apply {
-            add(JBLabel("Target Class :  ", SwingConstants.LEFT), BorderLayout.WEST)
+            add(JBLabel("To :     ", SwingConstants.LEFT), BorderLayout.WEST)
             add(targetClassField, BorderLayout.CENTER)
             add(createSelectClassButton(targetClassField, "Select Target Class"), BorderLayout.EAST)
         }
