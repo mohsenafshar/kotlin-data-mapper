@@ -17,7 +17,7 @@ import java.awt.*
 import javax.swing.*
 
 
-class NewClassSelectionDialog(private val project: Project, event: AnActionEvent) : DialogWrapper(project) {
+class MapperInfoSelectionDialog(private val project: Project, event: AnActionEvent) : DialogWrapper(project) {
     private val sourceClassField = JBTextField().apply {
         text = event.getData(CommonDataKeys.PSI_FILE)?.findDescendantOfType<KtClass>()?.kotlinFqName?.asString() ?: ""
     }
@@ -27,7 +27,6 @@ class NewClassSelectionDialog(private val project: Project, event: AnActionEvent
     }
     private val extensionFunctionRadio = JRadioButton("Extension Function", true)
     private val globalFunctionRadio = JRadioButton("Global Function")
-    private val fileNameField = JBTextField().apply { isEnabled = false }
 
     init {
         title = "Generate Mapping Function"
@@ -120,15 +119,5 @@ class NewClassSelectionDialog(private val project: Project, event: AnActionEvent
 
     fun isExtensionFunctionSelected(): Boolean {
         return extensionFunctionRadio.isSelected
-    }
-}
-
-class RoundedPanel(private val borderColor: Color, private val radius: Int) : JPanel() {
-    override fun paintComponent(g: Graphics) {
-        super.paintComponent(g)
-        val g2 = g as Graphics2D
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-        g2.color = borderColor
-        g2.drawRoundRect(0, 0, width - 1, height - 1, radius, radius) // Use the radius here
     }
 }
