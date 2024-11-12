@@ -1,16 +1,12 @@
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
-import org.jetbrains.intellij.platform.gradle.models.ProductRelease
-import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask
-import org.jetbrains.kotlin.com.intellij.util.EnvironmentUtil
 
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "1.9.24"
-//    id("org.jetbrains.intellij") version "1.17.3"
     id("org.jetbrains.intellij.platform")
 }
 
-group = "ir.mohsenafshar.android.plugins"
+group = "ir.mohsenafshar.toolkits.jetbrains"
 version = "1.0.0-SNAPSHOT"
 
 
@@ -27,11 +23,6 @@ dependencies {
 
         pluginVerifier()
         zipSigner()
-
-//        sameSinceUntilBuild.set(false) // Set this to true if the plugin is compatible across minor versions
-//        updateSinceUntilBuild.set(true) // Automatically adjusts the 'since' and 'until' build numbers
-//        sinceBuild.set("221") // Set the minimum supported version build number
-//        untilBuild.set("231.*") // Set the maximum supported version build number
     }
 }
 
@@ -61,16 +52,20 @@ intellijPlatform {
         token = System.getenv("PUBLISH_TOKEN")
     }
 
-    pluginVerification {
-        ides {
-            recommended()
-            select {
-                types = listOf(IntelliJPlatformType.IntellijIdeaCommunity, IntelliJPlatformType.IntellijIdeaUltimate, IntelliJPlatformType.AndroidStudio)
-                sinceBuild = "213"
-                untilBuild = "243.*"
-            }
-        }
-    }
+//    pluginVerification {
+//        ides {
+//            recommended()
+//            select {
+//                types = listOf(
+//                    IntelliJPlatformType.IntellijIdeaCommunity,
+//                    IntelliJPlatformType.IntellijIdeaUltimate,
+//                    IntelliJPlatformType.AndroidStudio
+//                )
+//                sinceBuild = "213"
+////                untilBuild = "243.*"
+//            }
+//        }
+//    }
 }
 
 // Configure Gradle IntelliJ Plugin
@@ -174,13 +169,7 @@ intellijPlatform {
 tasks {
     patchPluginXml {
         sinceBuild = "231"
-        untilBuild = "243.*"
-    }
-}
-
-tasks.register("hello") {
-    doLast {
-        println("CERTIFICATE_CHAIN is: " + System.getenv("CERTIFICATE_CHAIN"))
+//        untilBuild = "243.*"
     }
 }
 

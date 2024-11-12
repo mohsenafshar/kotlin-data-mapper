@@ -1,4 +1,4 @@
-package ir.mohsenafshar.android.plugins.datamapper
+package ir.mohsenafshar.toolkits.jetbrains.datamapper
 
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
