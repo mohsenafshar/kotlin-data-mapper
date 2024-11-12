@@ -1,4 +1,4 @@
-package ir.mohsenafshar.android.plugins.datamapper
+package ir.mohsenafshar.toolkits.jetbrains.datamapper
 
 import com.intellij.ide.util.TreeClassChooserFactory
 import com.intellij.ide.util.TreeFileChooserFactory

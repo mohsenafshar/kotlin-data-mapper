@@ -1,11 +1,11 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
     <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
-    <id>ir.mohsenafshar.android.plugins.DataMapper</id>
+    <id>ir.mohsenafshar.toolkits.jetbrains.DataMapper</id>
 
     <!-- Public plugin name should be written in Title Case.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
-    <name>DataMapper</name>
+    <name>Kotlin Data Mapper</name>
 
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
     <vendor email="support@mohsenafshar.ir" url="https://www.mohsenafshar.ir">MohsenAfshar</vendor>
@@ -14,8 +14,7 @@
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <description><![CDATA[
-    Mapper Function.<br>
-    <em>To Generate Domain models from DTO models</em>
+    Automatically generates a function to map properties from one Kotlin data class to another
   ]]></description>
 
     <!-- Product and plugin compatibility requirements.
@@ -36,10 +35,10 @@
     </extensions>
 
     <actions>
-        <action id="GenerateMapperAction" class="ir.mohsenafshar.android.plugins.datamapper.MapperAction" text="Generate Mapper" description="Generates mapping code">
+        <action id="GenerateMapperAction" class="ir.mohsenafshar.toolkits.jetbrains.datamapper.MapperAction"
+                text="Generate Mapping Function"
+                description="Automatically generates a function to map properties from one Kotlin data class to another.">
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
         </action>
     </actions>
-    <!-- 2021.3, 2021.3.1, 2021.3.2, ... -->
-    <idea-version since-build="223" until-build="243.*"/>
 </idea-plugin>
