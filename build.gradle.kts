@@ -27,12 +27,12 @@ dependencies {
 }
 
 
-//tasks {
-//    patchPluginXml {
-//        sinceBuild = "231"
-//        untilBuild = "243.*"
-//    }
-//}
+tasks {
+    patchPluginXml {
+        sinceBuild = "233"
+        untilBuild = provider { null }
+    }
+}
 
 intellijPlatform {
     buildSearchableOptions = true
@@ -61,20 +61,20 @@ intellijPlatform {
         token = System.getenv("PUBLISH_TOKEN")
     }
 
-//    pluginVerification {
-//        ides {
-//            recommended()
-//            select {
-//                types = listOf(
-//                    IntelliJPlatformType.IntellijIdeaCommunity,
-//                    IntelliJPlatformType.IntellijIdeaUltimate,
-//                    IntelliJPlatformType.AndroidStudio
-//                )
-//                sinceBuild = "213"
-////                untilBuild = "243.*"
-//            }
-//        }
-//    }
+    pluginVerification {
+        ides {
+            recommended()
+            select {
+                types = listOf(
+                    IntelliJPlatformType.IntellijIdeaCommunity,
+                    IntelliJPlatformType.IntellijIdeaUltimate,
+                    IntelliJPlatformType.AndroidStudio
+                )
+                sinceBuild = "233"
+//                untilBuild = "243.*"
+            }
+        }
+    }
 }
 
 // Configure Gradle IntelliJ Plugin

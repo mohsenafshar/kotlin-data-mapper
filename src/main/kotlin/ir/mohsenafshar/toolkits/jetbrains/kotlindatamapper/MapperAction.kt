@@ -3,20 +3,17 @@ package ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.command.writeCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
-import com.intellij.psi.*
-import com.intellij.psi.codeStyle.CodeStyleManager
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiType
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiUtil
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import org.jetbrains.kotlin.asJava.classes.KtLightClassForSourceDeclaration
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.psi.imports.addImport
 import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
@@ -24,6 +21,7 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
+import java.util.*
 
 
 class MapperAction : AnAction() {
@@ -49,7 +47,7 @@ class MapperAction : AnAction() {
                 val targetClass = findPsiClass(project, targetClassName)
 
                 if (sourceClass != null && targetClass != null) {
-                    prefix = if (isExtensionFunction) "this" else sourceClass.name!!.decapitalize()
+                    prefix = if (isExtensionFunction) "this" else sourceClass.name!!.decapitate()
                     targetFile = findKtFileByName(project, dialog.getSelectedFileName())
                         ?: (sourceClass as KtLightClassForSourceDeclaration).kotlinOrigin.containingKtFile
 
@@ -58,7 +56,7 @@ class MapperAction : AnAction() {
                         build(project, targetClass, sourceClass, "")
                         sb.append(")}")
                     } else {
-                        sb.append("fun map${sourceClass.name}To${targetClass.name}(${sourceClass.name?.decapitalize()}: ${sourceClass.name}): ${targetClass.name} { return ${targetClass.name}(")
+                        sb.append("fun map${sourceClass.name}To${targetClass.name}(${sourceClass.name?.decapitate()}: ${sourceClass.name}): ${targetClass.name} { return ${targetClass.name}(")
                         build(project, targetClass, sourceClass, "")
                         sb.append(")}")
                     }
@@ -82,22 +80,20 @@ class MapperAction : AnAction() {
         sourceClass: PsiClass,
         targetClass: PsiClass
     ) {
-        CoroutineScope(Dispatchers.Main).launch {
-            writeCommandAction(project, "Generate Extension Function") {
-                val psiFactory = KtPsiFactory(project)
+        WriteCommandAction.runWriteCommandAction(project) {
+            val psiFactory = KtPsiFactory(project)
 
-                val containingFile = targetFile ?: findKtFileByName(project, selectedFileName)
-                ?: (sourceClass as KtLightClassForSourceDeclaration).kotlinOrigin.containingKtFile
+            val containingFile = targetFile ?: findKtFileByName(project, selectedFileName)
+            ?: (sourceClass as KtLightClassForSourceDeclaration).kotlinOrigin.containingKtFile
 
-                containingFile.findDescendantOfType<KtFunction> {
-                    it.name?.contains("to${targetClass.name}") ?: false && it.receiverTypeReference?.text == sourceClass.name
-                }?.apply {
-                    delete()
-                }
-
-                val newFunction = psiFactory.createFunction(sb.toString())
-                containingFile.add(newFunction)
+            containingFile.findDescendantOfType<KtFunction> {
+                it.name?.contains("to${targetClass.name}") ?: false && it.receiverTypeReference?.text == sourceClass.name
+            }?.apply {
+                delete()
             }
+
+            val newFunction = psiFactory.createFunction(sb.toString())
+            containingFile.add(newFunction)
         }
     }
 
@@ -143,40 +139,6 @@ class MapperAction : AnAction() {
             .findClass(className, GlobalSearchScope.allScope(project))
     }
 
-    private fun insertGeneratedCode(project: Project, generatedCode: String, sourceClass: PsiClass) {
-        val psiFileFactory = PsiFileFactory.getInstance(project)
-        val file = psiFileFactory.createFileFromText(
-            "GeneratedMapper.kt",
-            KotlinLanguage.INSTANCE,
-            generatedCode
-        )
-
-        WriteCommandAction.runWriteCommandAction(project) {
-            val srcDir = project.baseDir.findFileByRelativePath("src")
-            if (srcDir != null) {
-                val psiDirectory: PsiDirectory? = sourceClass.containingFile.containingDirectory
-                if (psiDirectory != null) {
-                    CodeStyleManager.getInstance(project).reformat(file)
-                    psiDirectory.add(file)
-                } else {
-                    Messages.showMessageDialog(
-                        project,
-                        "PsiDirectory could not be created from the source directory",
-                        "Error",
-                        Messages.getErrorIcon()
-                    )
-                }
-            } else {
-                Messages.showMessageDialog(
-                    project,
-                    "Source directory not found",
-                    "Error",
-                    Messages.getErrorIcon()
-                )
-            }
-        }
-    }
-
     private fun findKtFileByName(project: Project, fileName: String?): KtFile? {
         fileName ?: return null
 
@@ -199,4 +161,12 @@ class MapperAction : AnAction() {
     }
 
     private fun PsiType.asPsiClass(): PsiClass? = PsiUtil.resolveClassInType(this)
+}
+
+fun String.decapitate() = apply {
+    replaceFirstChar {
+        it.lowercase(
+            Locale.getDefault()
+        )
+    }
 }
