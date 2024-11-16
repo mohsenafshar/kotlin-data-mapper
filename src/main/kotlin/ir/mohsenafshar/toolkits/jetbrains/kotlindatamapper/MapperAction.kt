@@ -47,7 +47,7 @@ class MapperAction : AnAction() {
                 val targetClass = findPsiClass(project, targetClassName)
 
                 if (sourceClass != null && targetClass != null) {
-                    prefix = if (isExtensionFunction) "this" else sourceClass.name!!.decapitate()
+                    prefix = if (isExtensionFunction) "this" else sourceClass.name!!.decapitalize()
                     targetFile = findKtFileByName(project, dialog.getSelectedFileName())
                         ?: (sourceClass as KtLightClassForSourceDeclaration).kotlinOrigin.containingKtFile
 
@@ -56,7 +56,7 @@ class MapperAction : AnAction() {
                         build(project, targetClass, sourceClass, "")
                         sb.append(")}")
                     } else {
-                        sb.append("fun map${sourceClass.name}To${targetClass.name}(${sourceClass.name?.decapitate()}: ${sourceClass.name}): ${targetClass.name} { return ${targetClass.name}(")
+                        sb.append("fun map${sourceClass.name}To${targetClass.name}(${sourceClass.name?.decapitalize()}: ${sourceClass.name}): ${targetClass.name} { return ${targetClass.name}(")
                         build(project, targetClass, sourceClass, "")
                         sb.append(")}")
                     }
@@ -163,10 +163,8 @@ class MapperAction : AnAction() {
     private fun PsiType.asPsiClass(): PsiClass? = PsiUtil.resolveClassInType(this)
 }
 
-fun String.decapitate() = apply {
-    replaceFirstChar {
-        it.lowercase(
-            Locale.getDefault()
-        )
-    }
+fun String.decapitalize(): String = replaceFirstChar {
+    it.lowercase(
+        Locale.getDefault()
+    )
 }
