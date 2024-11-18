@@ -43,3 +43,5 @@ bin/
 
 *.crt
 *.pem
+
+.run/
