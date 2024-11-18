@@ -27,7 +27,14 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
+        <applicationService
+                serviceImplementation="ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.data.AppSettings"/>
 
+        <applicationConfigurable
+                parentId="tools"
+                instance="ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.presenter.AppSettingsConfigurable"
+                id="ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.presenter.AppSettingsConfigurable"
+                displayName="SDK: Application Settings Example"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">

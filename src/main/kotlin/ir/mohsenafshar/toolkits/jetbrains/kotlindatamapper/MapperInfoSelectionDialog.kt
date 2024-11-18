@@ -4,11 +4,13 @@ import com.intellij.ide.util.TreeClassChooserFactory
 import com.intellij.ide.util.TreeFileChooserFactory
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextField
+import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.presenter.AppSettingsConfigurable
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.psi.KtClass
@@ -119,5 +121,12 @@ class MapperInfoSelectionDialog(private val project: Project, event: AnActionEve
 
     fun isExtensionFunctionSelected(): Boolean {
         return extensionFunctionRadio.isSelected
+    }
+
+    fun openSettingsPanel() {
+        ShowSettingsUtil.getInstance().showSettingsDialog(
+            null,  // Pass the current project if needed
+            AppSettingsConfigurable::class.java
+        )
     }
 }
