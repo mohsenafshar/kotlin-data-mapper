@@ -1,7 +1,8 @@
 # Kotlin DataMapper Plugin
 
-[![JetBrains Plugins](https://img.shields.io/jetbrains/plugin/v/ir.mohsenafshar.toolkits.jetbrains.DataMapper)](https://plugins.jetbrains.com/plugin/25820-kotlin-data-mapper)  
-[![License](https://img.shields.io/github/license/mohsenafshar/kotlin-data-mapper)](LICENSE)
+
+[![Android Studio Plugin](https://img.shields.io/badge/plugin-AndroidStudio-green.svg)](https://plugins.jetbrains.com/plugin/25820-kotlin-data-mapper)
+[![IntelliJ Idea Plugin](https://img.shields.io/badge/plugin-IntelliJ%20%20Idea-purple.svg)](https://plugins.jetbrains.com/plugin/25820-kotlin-data-mapper)
 [![Downloads](https://img.shields.io/jetbrains/plugin/d/25820-kotlin-data-mapper.svg)](https://plugins.jetbrains.com/plugin/25820-kotlin-data-mapper)
 [![Version](https://img.shields.io/jetbrains/plugin/v/25820.svg?label=version)](https://plugins.jetbrains.com/plugin/25820-kotlin-data-mapper)
 
@@ -36,6 +37,8 @@ We want your feedback!
 - [Ask a question](https://github.com/mohsenafshar/kotlin-data-mapper/issues/new?labels=guidance&template=guidance_request.md)
 - [File an issue](https://github.com/mohsenafshar/kotlin-data-mapper/issues/new?labels=bug&template=bug_report.md)
 - Code contributions. See [our contributing guide](CONTRIBUTING.md) for how to get started.
+
+---
 
 ## Getting Started
 
