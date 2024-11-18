@@ -21,10 +21,10 @@ A powerful IntelliJ IDEA plugin that simplifies the process of generating mappin
 ---
 
 ## Supported IDEs
-Android Studio — Jellyfish | 2023.3.1+
-Aqua — 2024.1.1+
-IntelliJ IDEA Community — 2023.3+
-IntelliJ IDEA Ultimate — 2023.3+
+- Android Studio — Jellyfish | 2023.3.1+
+- IntelliJ IDEA Community — 2023.3+
+- IntelliJ IDEA Ultimate — 2023.3+
+- Aqua — 2024.1.1+
 
 ---
 
