@@ -28,7 +28,7 @@ class AppSettingsComponent {
     private val ideaUserStatusCheckBox = JBCheckBox("IntelliJ IDEA user")
     private val pTextPane = JTextPane().apply {
         text = "Here is some text with a %SOURCE_CLASS%."
-    }.also { onTextChange("init") }
+    }
 
     private var defaultStyle: Style = pTextPane.logicalStyle
     private val customStyle: Style = pTextPane.styledDocument.addStyle("customStyle", null).apply {
@@ -37,34 +37,26 @@ class AppSettingsComponent {
         StyleConstants.setItalic(this, true)
     }
 
-    private var isListenerAdded = false
-
     init {
-        if (pTextPane.styledDocument.getStyle("customStyle") != null) pTextPane.styledDocument.removeStyle("customStyle")
+        onTextChange("Init")
 
         registerThemeChangeListener {
-            defaultStyle = pTextPane.logicalStyle
             onTextChange("LAF")
         }
 
-//        onTextChange("Init")
+        pTextPane.styledDocument.addDocumentListener(object : DocumentListener {
+            override fun insertUpdate(e: DocumentEvent?) {
+                onTextChange("insertUpdate")
+            }
 
-        if (!isListenerAdded) {
-            isListenerAdded = true
-            pTextPane.styledDocument.addDocumentListener(object : DocumentListener {
-                override fun insertUpdate(e: DocumentEvent?) {
-                    onTextChange("insertUpdate")
-                }
+            override fun removeUpdate(e: DocumentEvent?) {
+                onTextChange("removeUpdate")
+            }
 
-                override fun removeUpdate(e: DocumentEvent?) {
-                    onTextChange("removeUpdate")
-                }
-
-                override fun changedUpdate(e: DocumentEvent?) {
-                    println("changedUpdate")
-                }
-            })
-        }
+            override fun changedUpdate(e: DocumentEvent?) {
+                println("changedUpdate")
+            }
+        })
 
         panel = FormBuilder.createFormBuilder()
             .addLabeledComponent(JBLabel("User name:"), userNameTextField, 1, false)
@@ -79,6 +71,7 @@ class AppSettingsComponent {
         SwingUtilities.invokeLater {
             pTextPane.styledDocument.setCharacterAttributes(0, pTextPane.text.length, defaultStyle, true)
 
+            // todo:  %SOURCE_CLASS%TARGET_CLASS%
             pTextPane.text.findTextRange("%SOURCE_CLASS%")?.run {
                 pTextPane.styledDocument.setCharacterAttributes(this.startOffset, this.length, customStyle, false)
             }
