@@ -17,6 +17,7 @@ class AppSettings : PersistentStateComponent<AppSettings.State> {
     class State {
         var userId: @NonNls String? = "John Smith"
         var ideaStatus: Boolean = false
+        var userDefinedFunctionPattern: String? = null
     }
 
     private var myState = State()
