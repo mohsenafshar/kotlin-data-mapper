@@ -2,27 +2,33 @@ package ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.ui
 
 import com.intellij.ide.ui.LafManager
 import com.intellij.ide.ui.LafManagerListener
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.JBColor
-import com.intellij.ui.components.JBCheckBox
-import com.intellij.ui.components.JBLabel
-import com.intellij.ui.components.JBScrollPane
-import com.intellij.ui.components.JBTextField
+import com.intellij.ui.components.*
 import com.intellij.util.text.findTextRange
 import com.intellij.util.ui.FormBuilder
-import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.components.BorderLayoutPanel
+import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.domain.ExtensionFunctionNamePattern
+import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.domain.FunctionNamePattern
+import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.domain.GlobalFunctionNamePattern
+import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.uicomponents.StyledTextPane
+import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.uicomponents.marginBottom
+import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.uicomponents.marginTop
+import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.uicomponents.marginLeft
+import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.uicomponents.smallFont
 import org.jetbrains.annotations.NotNull
-import java.awt.BorderLayout
-import java.awt.Color
+import java.awt.*
 import javax.swing.*
-import javax.swing.border.CompoundBorder
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.text.Style
 import javax.swing.text.StyleConstants
 
 
-class AppSettingsComponent {
+class AppSettingsComponent: Disposable {
+    private val connection = ApplicationManager.getApplication().messageBus.connect()
+
     val panel: JPanel
     private val userNameTextField = JBTextField()
     private val ideaUserStatusCheckBox = JBCheckBox("IntelliJ IDEA user")
@@ -37,12 +43,15 @@ class AppSettingsComponent {
         StyleConstants.setItalic(this, true)
     }
 
-    init {
-        onTextChange("Init")
+    private val extensionFunctionNamePattern = ExtensionFunctionNamePattern()
+    private val globalFunctionNamePattern = GlobalFunctionNamePattern()
 
-        registerThemeChangeListener {
+    init {
+        connection.subscribe(LafManagerListener.TOPIC, MyThemeChangeListener{
             onTextChange("LAF")
-        }
+        })
+
+        onTextChange("Init")
 
         pTextPane.styledDocument.addDocumentListener(object : DocumentListener {
             override fun insertUpdate(e: DocumentEvent?) {
@@ -58,10 +67,29 @@ class AppSettingsComponent {
             }
         })
 
+        val globalFuncPatternPanel: BorderLayoutPanel =
+            functionPatternPanel("Global Function :     ", globalFunctionNamePattern).apply {
+                marginTop(8)
+                marginBottom(12)
+            }
+        val extFuncPatternPanel: BorderLayoutPanel =
+            functionPatternPanel("Extension Function :", extensionFunctionNamePattern, true)
+
         panel = FormBuilder.createFormBuilder()
             .addLabeledComponent(JBLabel("User name:"), userNameTextField, 1, false)
-            .addComponent(ideaUserStatusCheckBox, 1)
-            .addComponent(StyledTextPane(pTextPane), 1)
+            .addComponent(ideaUserStatusCheckBox)
+            .addComponent(StyledTextPane(pTextPane))
+            .addSeparator(16)
+            .addComponent(JBLabel("Function Naming Pattern").marginTop(16).marginBottom(16).apply {
+                font = Font("Inter", Font.BOLD, this.font.size + 1)
+            })
+            .addComponent(globalFuncPatternPanel)
+            .addComponent(extFuncPatternPanel)
+            .addComponent(JBLabel("Variables to Use :").marginTop(16).marginBottom(4))
+            .addComponent(JBLabel("    • %SOURCE_CLASS%").smallFont())
+            .addComponent(JBLabel("    • %TARGET_CLASS%").smallFont().marginBottom(16))
+//            .addComponent(JBLabel("<html><body>Variables to Use: <ul><li>%SOURCE_CLASS%</li> <li>%TARGET_CLASS% </li> </ul></body></html>").smallFont())
+            .addSeparator(16)
             .addComponentFillVertically(JPanel(), 0)
             .panel
     }
@@ -97,46 +125,46 @@ class AppSettingsComponent {
             ideaUserStatusCheckBox.isSelected = newStatus
         }
 
-    // Register the listener in your plugin initialization code
-    private fun registerThemeChangeListener(action: () -> Unit) {
-        val connection = ApplicationManager.getApplication().messageBus.connect()
-        connection.subscribe(LafManagerListener.TOPIC, MyThemeChangeListener(action))
+    private fun functionPatternPanel(
+        label: String,
+        functionNamePattern: FunctionNamePattern,
+        showExample: Boolean = false
+    ): BorderLayoutPanel {
+        return BorderLayoutPanel(10, 0).apply {
+            addToLeft(BorderLayoutPanel().apply {
+                addToTop(JBLabel(label).marginTop(10))
+            })
+            addToCenter(BorderLayoutPanel().apply {
+                addToTop(JBTextField())
+                addToBottom(BorderLayoutPanel().apply {
+                    marginLeft(5)
+                    addToTop(JBLabel(functionNamePattern.defaultPatternAsExpression).apply {
+                        marginTop(2)
+                        foreground = JBColor.gray
+                        smallFont()
+                    })
+                    if (showExample) {
+                        addToBottom(JBLabel(functionNamePattern.examplePatternExplanation).apply {
+                            marginTop(4)
+                            foreground = JBColor.gray
+                            smallFont()
+                        })
+                    }
+                })
+            })
+            addToRight(BorderLayoutPanel().apply {
+                addToTop(JButton("Reset to Default"))
+            })
+        }
     }
-}
 
-
-class StyledTextPane(textPane: JTextPane) : JPanel(BorderLayout()) {
-    init {
-        textPane.apply {
-            background = JBColor.white
-//            font = Font("Arial", Font.PLAIN, 12)
-            margin = JBUI.insets(3)
+    class MyThemeChangeListener(private val action: () -> Unit) : LafManagerListener {
+        override fun lookAndFeelChanged(source: LafManager) {
+            action()
         }
-
-        val compoundBorder = CompoundBorder(
-            BorderFactory.createLineBorder(JBColor.lightGray, 1, true),
-            BorderFactory.createEmptyBorder(2, 2, 2, 2)
-        )
-
-        val textPaneWrapper = JPanel(BorderLayout()).apply {
-            border = compoundBorder
-            add(textPane)
-        }
-
-        val scrollPane = JBScrollPane(textPaneWrapper).apply {
-            border = null  // Remove scroll pane border
-        }
-
-        add(scrollPane, BorderLayout.CENTER)
     }
-}
 
-class MyThemeChangeListener(private val action: () -> Unit) : LafManagerListener {
-    override fun lookAndFeelChanged(source: LafManager) {
-        // This method is called whenever the theme is changed
-        val currentLookAndFeel = UIManager.getLookAndFeel()
-        println("Theme changed to: ${currentLookAndFeel.name}")
-
-        action()
+    override fun dispose() {
+        connection.dispose()
     }
 }
