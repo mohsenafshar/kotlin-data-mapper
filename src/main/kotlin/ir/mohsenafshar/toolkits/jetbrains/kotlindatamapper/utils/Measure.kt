@@ -1,4 +1,4 @@
-package ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.uicomponents
+package ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.utils
 
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBInsets
