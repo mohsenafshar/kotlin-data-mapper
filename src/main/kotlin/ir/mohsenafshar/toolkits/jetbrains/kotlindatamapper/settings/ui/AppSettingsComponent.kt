@@ -5,20 +5,19 @@ import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.JBColor
-import com.intellij.ui.components.*
+import com.intellij.ui.components.JBCheckBox
+import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBTextField
 import com.intellij.util.text.findTextRange
 import com.intellij.util.ui.FormBuilder
 import com.intellij.util.ui.components.BorderLayoutPanel
 import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.domain.ExtensionFunctionNamePattern
 import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.domain.FunctionNamePattern
 import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.domain.GlobalFunctionNamePattern
-import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.uicomponents.StyledTextPane
-import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.uicomponents.marginBottom
-import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.uicomponents.marginTop
-import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.uicomponents.marginLeft
-import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.uicomponents.smallFont
+import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.uicomponents.*
 import org.jetbrains.annotations.NotNull
-import java.awt.*
+import java.awt.Color
+import java.awt.Font
 import javax.swing.*
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
@@ -26,7 +25,7 @@ import javax.swing.text.Style
 import javax.swing.text.StyleConstants
 
 
-class AppSettingsComponent: Disposable {
+class AppSettingsComponent : Disposable {
     private val connection = ApplicationManager.getApplication().messageBus.connect()
 
     val panel: JPanel
@@ -46,8 +45,44 @@ class AppSettingsComponent: Disposable {
     private val extensionFunctionNamePattern = ExtensionFunctionNamePattern()
     private val globalFunctionNamePattern = GlobalFunctionNamePattern()
 
+
+    private val htmlContent = "<html>" +
+            "<head>" +
+            "<style>" +
+            "p { padding-top: '2px'; }" +
+            "</style>" +
+            "</head>" +
+            "<body>" +
+            "<h2 style=\"margin-bottom: '0.25rem'\">Instructions</h2>" +
+            "<p>You can define a custom naming pattern using <i>\$SOURCE_CLASS$</i> and <i>\$TARGET_CLASS$</i>.<br>These placeholders will dynamically be replaced with the actual class names<br> when the function is generated.</p>" +
+            "<ul>" +
+            "  <li><b>Global Function</b>" +
+            "    <div style=\"margin-left: '16px'; padding-top: '4px'\">" +
+            "      <p>Pattern:</p>" +
+            "      <code>&nbsp;&nbsp;&nbsp;&nbsp;map\$SOURCE_CLASS\$To\$TARGET_CLASS$</code>" +
+            "      <p>Generates:</p>" +
+            "      <code>&nbsp;&nbsp;&nbsp;&nbsp;fun mapSourceToTarget(source: Source): Target</code>" +
+            "      <p>Example:</p>" +
+            "      <code>&nbsp;&nbsp;&nbsp;&nbsp;fun mapUserDtoToUserEntity(userDto: UserDto): UserEntity</code>" +
+            "    </div>" +
+            "  </li><br>" +
+            "  <li><b>Extension Function</b>" +
+            "    <div style=\"margin-left: '16px'; padding-top: '4px'\">" +
+            "      <p>Pattern:</p>" +
+            "      <code>&nbsp;&nbsp;&nbsp;&nbsp;to\$TARGET_CLASS$</code>" +
+            "      <p>Generates:</p>" +
+            "      <code>&nbsp;&nbsp;&nbsp;&nbsp;fun Source.toTarget(): Target</code>" +
+            "      <p>Example:</p>" +
+            "      <code>&nbsp;&nbsp;&nbsp;&nbsp;fun UserDto.toUserEntity(): UserEntity</code>" +
+            "    </div>" +
+            "  </li>" +
+            "</ul>" +
+            "</body>" +
+            "</html>"
+
+
     init {
-        connection.subscribe(LafManagerListener.TOPIC, MyThemeChangeListener{
+        connection.subscribe(LafManagerListener.TOPIC, MyThemeChangeListener {
             onTextChange("LAF")
         })
 
@@ -85,10 +120,7 @@ class AppSettingsComponent: Disposable {
             })
             .addComponent(globalFuncPatternPanel)
             .addComponent(extFuncPatternPanel)
-            .addComponent(JBLabel("Variables to Use :").marginTop(16).marginBottom(4))
-            .addComponent(JBLabel("    • %SOURCE_CLASS%").smallFont())
-            .addComponent(JBLabel("    • %TARGET_CLASS%").smallFont().marginBottom(16))
-//            .addComponent(JBLabel("<html><body>Variables to Use: <ul><li>%SOURCE_CLASS%</li> <li>%TARGET_CLASS% </li> </ul></body></html>").smallFont())
+            .addComponent(JBLabel(htmlContent))
             .addSeparator(16)
             .addComponentFillVertically(JPanel(), 0)
             .panel
@@ -168,3 +200,4 @@ class AppSettingsComponent: Disposable {
         connection.dispose()
     }
 }
+

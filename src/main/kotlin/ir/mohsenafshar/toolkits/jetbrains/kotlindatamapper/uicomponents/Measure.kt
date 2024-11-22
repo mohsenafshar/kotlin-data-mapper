@@ -3,26 +3,30 @@ package ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.uicomponents
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.JBUI
-import org.jetbrains.kotlin.tools.projectWizard.wizard.ui.addBorder
 import java.awt.Font
+import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JLabel
 
 
 fun <C : JComponent> C.margin(insets: JBInsets): C = apply {
-    addBorder(JBEmptyBorder(insets))
+    val border = JBEmptyBorder(insets)
+    this.border = BorderFactory.createCompoundBorder(border, this.border)
 }
 
 fun <C : JComponent> C.marginLeft(m: Int): C = apply {
-    addBorder(JBEmptyBorder(JBUI.insetsLeft(m)))
+    val border = JBEmptyBorder(JBUI.insetsLeft(m))
+    this.border = BorderFactory.createCompoundBorder(border, this.border)
 }
 
 fun <C : JComponent> C.marginTop(m: Int): C = apply {
-    addBorder(JBEmptyBorder(JBUI.insetsTop(m)))
+    val border = JBEmptyBorder(JBUI.insetsTop(m))
+    this.border = BorderFactory.createCompoundBorder(border, this.border)
 }
 
 fun <C : JComponent> C.marginBottom(m: Int): C = apply {
-    addBorder(JBEmptyBorder(JBUI.insetsBottom(m)))
+    val border = JBEmptyBorder(JBUI.insetsBottom(m))
+    this.border = BorderFactory.createCompoundBorder(border, this.border)
 }
 
 fun JLabel.smallFont(): JLabel = apply {
