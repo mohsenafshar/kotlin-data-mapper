@@ -15,7 +15,7 @@ class RoundedBorder(
 //    override fun getBorderInsets(c: Component): Insets =
 //        Insets(radius + stroke.lineWidth.toInt(), radius + stroke.lineWidth.toInt(), radius + stroke.lineWidth.toInt(), radius + stroke.lineWidth.toInt())
 
-    override fun getBorderInsets(c: Component): Insets = JBUI.insets(4, 6)
+    override fun getBorderInsets(c: Component): Insets = JBUI.insets(2+ stroke.lineWidth.toInt(), 2+ stroke.lineWidth.toInt())
 
     override fun isBorderOpaque(): Boolean = false
 

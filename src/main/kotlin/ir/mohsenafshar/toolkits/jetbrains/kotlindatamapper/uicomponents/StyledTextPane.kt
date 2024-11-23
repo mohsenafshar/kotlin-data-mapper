@@ -3,13 +3,18 @@ package ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.uicomponents
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.text.findTextRange
+import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBUI
+import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.utils.margin
+import org.jetbrains.kotlin.tools.projectWizard.wizard.ui.addBorder
 import java.awt.BasicStroke
 import java.awt.BorderLayout
 import java.awt.Color
+import javax.swing.BorderFactory
 import javax.swing.JPanel
 import javax.swing.JTextPane
 import javax.swing.SwingUtilities
+import javax.swing.border.EmptyBorder
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.text.Style
@@ -18,8 +23,8 @@ import javax.swing.text.StyleConstants
 
 class StyledTextPane(private val sourcePlaceHolder: String, private val targetPlaceHolder: String) :
     JPanel(BorderLayout()) {
-    var textPane: JTextPane = JTextPane()
-        private set
+
+    val textPane: JTextPane = JTextPane()
 
     val roundedBorder = RoundedBorder(8)
     val defaultStroke = BasicStroke(1.0f)
@@ -34,7 +39,7 @@ class StyledTextPane(private val sourcePlaceHolder: String, private val targetPl
     init {
         textPane.apply {
             background = JBColor.white
-            margin = JBUI.insets(3)
+            margin = JBUI.insets(6, 8)
 
             styledDocument.addDocumentListener(object : DocumentListener {
                 override fun insertUpdate(e: DocumentEvent?) {
@@ -51,33 +56,25 @@ class StyledTextPane(private val sourcePlaceHolder: String, private val targetPl
             })
         }
 
-        val textPaneWrapper = JPanel(BorderLayout()).apply {
-            border = roundedBorder
-            add(textPane)
+        border = roundedBorder
+        add(textPane)
 
-            isFocusable = true
-            requestFocusInWindow()
+        isFocusable = true
+        requestFocusInWindow()
 
-            textPane.addFocusListener(object : java.awt.event.FocusListener {
-                override fun focusGained(e: java.awt.event.FocusEvent) {
-                    roundedBorder.setColor(Color(50, 115, 255))
-                    roundedBorder.setStroke(focusStroke)
-                    repaint()
-                }
+        textPane.addFocusListener(object : java.awt.event.FocusListener {
+            override fun focusGained(e: java.awt.event.FocusEvent) {
+                roundedBorder.setColor(Color(50, 115, 255))
+                roundedBorder.setStroke(focusStroke)
+                repaint()
+            }
 
-                override fun focusLost(e: java.awt.event.FocusEvent) {
-                    roundedBorder.setColor(JBColor.lightGray)
-                    roundedBorder.setStroke(defaultStroke)
-                    repaint()
-                }
-            })
-        }
-
-        val scrollPane = JBScrollPane(textPaneWrapper).apply {
-            border = null  // Remove scroll pane border
-        }
-
-        add(scrollPane, BorderLayout.CENTER)
+            override fun focusLost(e: java.awt.event.FocusEvent) {
+                roundedBorder.setColor(JBColor.lightGray)
+                roundedBorder.setStroke(defaultStroke)
+                repaint()
+            }
+        })
 
         repaintStyle("Init")
     }
