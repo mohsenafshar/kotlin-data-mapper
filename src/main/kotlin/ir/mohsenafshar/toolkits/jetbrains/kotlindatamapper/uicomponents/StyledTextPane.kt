@@ -27,7 +27,6 @@ class StyledTextPane : JPanel(BorderLayout()) {
     private var defaultStyle: Style = textPane.logicalStyle
     private val customStyle: Style = textPane.styledDocument.addStyle("customStyle", null).apply {
         StyleConstants.setForeground(this, JBColor(Color(146, 25, 227), Color(173, 136, 244)))
-        StyleConstants.setBold(this, true)
         StyleConstants.setItalic(this, true)
     }
 
