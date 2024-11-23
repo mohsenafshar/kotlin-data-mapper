@@ -16,8 +16,9 @@ import javax.swing.text.Style
 import javax.swing.text.StyleConstants
 
 
-class StyledTextPane : JPanel(BorderLayout()) {
-    var textPane: JTextPane = JTextPane().apply { text = "map\$SOURCE_CLASS\$To\$TARGET_CLASS\$" }
+class StyledTextPane(private val sourcePlaceHolder: String, private val targetPlaceHolder: String) :
+    JPanel(BorderLayout()) {
+    var textPane: JTextPane = JTextPane()
         private set
 
     val roundedBorder = RoundedBorder(8)
@@ -87,10 +88,10 @@ class StyledTextPane : JPanel(BorderLayout()) {
             textPane.styledDocument.setCharacterAttributes(0, textPane.text.length, defaultStyle, true)
 
             // todo:  %SOURCE_CLASS%TARGET_CLASS%
-            textPane.text.findTextRange("\$SOURCE_CLASS$")?.run {
+            textPane.text.findTextRange(sourcePlaceHolder)?.run {
                 textPane.styledDocument.setCharacterAttributes(this.startOffset, this.length, customStyle, false)
             }
-            textPane.text.findTextRange("\$TARGET_CLASS$")?.run {
+            textPane.text.findTextRange(targetPlaceHolder)?.run {
                 textPane.styledDocument.setCharacterAttributes(this.startOffset, this.length, customStyle, false)
             }
         }

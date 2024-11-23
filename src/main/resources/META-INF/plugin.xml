@@ -34,7 +34,7 @@
                 parentId="tools"
                 instance="ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.presenter.AppSettingsConfigurable"
                 id="ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.presenter.AppSettingsConfigurable"
-                displayName="SDK: Application Settings Example"/>
+                displayName="Kotlin Data Mapper"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">

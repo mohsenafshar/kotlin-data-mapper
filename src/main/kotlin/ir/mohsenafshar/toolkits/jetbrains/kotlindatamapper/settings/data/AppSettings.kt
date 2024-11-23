@@ -1,10 +1,13 @@
 package ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.data
 
+import com.intellij.ide.ui.UISettings
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
-import org.jetbrains.annotations.NonNls
+import com.intellij.openapi.components.service
+import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.domain.ExtensionFunctionNamePattern
+import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.domain.GlobalFunctionNamePattern
 import org.jetbrains.annotations.NotNull
 
 
@@ -14,15 +17,18 @@ import org.jetbrains.annotations.NotNull
 )
 class AppSettings : PersistentStateComponent<AppSettings.State> {
 
+    private val extensionFunctionNamePattern = ExtensionFunctionNamePattern()
+    private val globalFunctionNamePattern = GlobalFunctionNamePattern()
+
     class State {
-        var userId: @NonNls String? = "John Smith"
-        var ideaStatus: Boolean = false
-        var userDefinedFunctionPattern: String? = null
+        var userDefinedExtFunctionPattern: String? = null
+        var userDefinedGlobalFunctionPattern: String? = null
     }
 
     private var myState = State()
 
     override fun getState(): State {
+        UISettings
         return myState
     }
 
@@ -32,7 +38,11 @@ class AppSettings : PersistentStateComponent<AppSettings.State> {
 
     companion object {
         val instance: AppSettings
-            get() = ApplicationManager.getApplication()
-                .getService(AppSettings::class.java)
+            get() = ApplicationManager.getApplication().service<AppSettings>()
+
+        fun defaultExtPattern(): String = instance.extensionFunctionNamePattern.defaultPattern()
+        fun defaultExtPatternAsHtml(): String = instance.extensionFunctionNamePattern.defaultPatternAsHtml()
+        fun defaultGlobalPattern(): String = instance.globalFunctionNamePattern.defaultPattern()
+        fun defaultGlobalPatternAsHtml(): String = instance.globalFunctionNamePattern.defaultPatternAsHtml()
     }
 }

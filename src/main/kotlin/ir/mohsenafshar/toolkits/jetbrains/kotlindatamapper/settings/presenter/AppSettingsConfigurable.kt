@@ -1,6 +1,7 @@
 package ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.presenter
 
 import com.intellij.openapi.options.Configurable
+import com.intellij.openapi.util.Disposer
 import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.data.AppSettings
 import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.ui.AppSettingsComponent
 import org.jetbrains.annotations.Nls
@@ -13,7 +14,7 @@ internal class AppSettingsConfigurable : Configurable {
 
     @Nls(capitalization = Nls.Capitalization.Title)
     override fun getDisplayName(): String {
-        return "SDK: Application Settings Example"
+        return "Kotlin Data Mapper"
     }
 
     override fun getPreferredFocusedComponent(): JComponent? {
@@ -21,32 +22,36 @@ internal class AppSettingsConfigurable : Configurable {
     }
 
     override fun createComponent(): JComponent? {
-        mySettingsComponent = AppSettingsComponent()
+        mySettingsComponent = AppSettingsComponent(AppSettings.defaultExtPatternAsHtml(), AppSettings.defaultGlobalPatternAsHtml())
         return mySettingsComponent?.panel
     }
 
     override fun isModified(): Boolean {
         val state: AppSettings.State =
             Objects.requireNonNull(AppSettings.instance.state)
-        return mySettingsComponent!!.userNameText != state.userId ||
-                mySettingsComponent!!.ideaUserStatus != state.ideaStatus
+
+        return mySettingsComponent!!.globalPattern != state.userDefinedGlobalFunctionPattern ||
+                mySettingsComponent!!.extPattern != state.userDefinedExtFunctionPattern
     }
 
     override fun apply() {
         val state: AppSettings.State =
             Objects.requireNonNull(AppSettings.instance.state)
-        state.userId = mySettingsComponent?.userNameText
-        state.ideaStatus = mySettingsComponent?.ideaUserStatus ?: false
+
+        state.userDefinedExtFunctionPattern = mySettingsComponent?.extPattern
+        state.userDefinedGlobalFunctionPattern = mySettingsComponent?.globalPattern
     }
 
     override fun reset() {
         val state: AppSettings.State =
             Objects.requireNonNull(AppSettings.instance.state)
-        mySettingsComponent?.userNameText = state.userId
-        mySettingsComponent?.ideaUserStatus = state.ideaStatus
+        mySettingsComponent?.globalPattern =
+            state.userDefinedGlobalFunctionPattern ?: AppSettings.defaultGlobalPattern()
+        mySettingsComponent?.extPattern = state.userDefinedExtFunctionPattern ?: AppSettings.defaultExtPattern()
     }
 
     override fun disposeUIResources() {
+        mySettingsComponent?.let { Disposer.dispose(it) }
         mySettingsComponent = null
     }
 }
