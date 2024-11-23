@@ -22,7 +22,7 @@ internal class AppSettingsConfigurable : Configurable {
     }
 
     override fun createComponent(): JComponent? {
-        mySettingsComponent = AppSettingsComponent(AppSettings.defaultExtPatternAsHtml(), AppSettings.defaultGlobalPatternAsHtml())
+        mySettingsComponent = AppSettingsComponent()
         return mySettingsComponent?.panel
     }
 

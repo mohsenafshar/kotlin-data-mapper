@@ -8,8 +8,9 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.FormBuilder
 import com.intellij.util.ui.components.BorderLayoutPanel
-import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.domain.FunctionNamePattern.Companion.SOURCE_CLASS_PLACEHOLDER
-import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.domain.FunctionNamePattern.Companion.TARGET_CLASS_PLACEHOLDER
+import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.data.AppSettings
+import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.domain.FunctionNamePattern.Companion.SOURCE_PLACEHOLDER
+import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.domain.FunctionNamePattern.Companion.TARGET_PLACEHOLDER
 import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.uicomponents.StyledTextPane
 import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.utils.*
 import java.awt.Font
@@ -19,15 +20,15 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 
 
-class AppSettingsComponent(defaultExtPattern: String, defaultGlobalPattern: String) : Disposable {
+class AppSettingsComponent() : Disposable {
     private val connection = ApplicationManager.getApplication().messageBus.connect(this)
 
     val panel: JPanel
-    private val globalFuncTextPane = StyledTextPane(SOURCE_CLASS_PLACEHOLDER, TARGET_CLASS_PLACEHOLDER)
-    private val extFuncTextPane = StyledTextPane(SOURCE_CLASS_PLACEHOLDER, TARGET_CLASS_PLACEHOLDER)
+    private val globalFuncTextPane = StyledTextPane(SOURCE_PLACEHOLDER, TARGET_PLACEHOLDER)
+    private val extFuncTextPane = StyledTextPane(SOURCE_PLACEHOLDER, TARGET_PLACEHOLDER)
 
     private val htmlContent =
-        "You can define a custom naming pattern using <i>${SOURCE_CLASS_PLACEHOLDER}</i> and <i>${TARGET_CLASS_PLACEHOLDER}</i>.<br>These placeholders will dynamically be replaced with the actual class names<br> when the function is generated.".asHtml()
+        "You can define a custom naming pattern using <i>${SOURCE_PLACEHOLDER}</i> and <i>${TARGET_PLACEHOLDER}</i>.<br>These placeholders will dynamically be replaced with the actual class names<br> when the function is generated.".asHtml()
 
 
     init {
@@ -37,13 +38,13 @@ class AppSettingsComponent(defaultExtPattern: String, defaultGlobalPattern: Stri
         })
 
         val globalFuncPatternPanel: BorderLayoutPanel =
-            functionPatternPanel("Global Function :     ", globalFuncTextPane, defaultGlobalPattern) {
-                globalPattern = defaultGlobalPattern
+            functionPatternPanel("Global Function :     ", globalFuncTextPane, AppSettings.defaultGlobalPatternAsHtml()) {
+                globalPattern = AppSettings.defaultGlobalPattern()
             }
 
         val extFuncPatternPanel: BorderLayoutPanel =
-            functionPatternPanel("Extension Function :", extFuncTextPane, defaultExtPattern) {
-                extPattern = defaultExtPattern
+            functionPatternPanel("Extension Function :", extFuncTextPane, AppSettings.defaultExtPatternAsHtml()) {
+                extPattern = AppSettings.defaultExtPattern()
             }
 
         panel = FormBuilder.createFormBuilder()
@@ -76,7 +77,7 @@ class AppSettingsComponent(defaultExtPattern: String, defaultGlobalPattern: Stri
     private fun functionPatternPanel(
         label: String,
         styledTextPane: StyledTextPane,
-        default: String,
+        defaultAsHtml: String,
         actionListener: (ActionEvent) -> Unit
     ): BorderLayoutPanel {
         return BorderLayoutPanel(10, 0).apply {
@@ -87,7 +88,7 @@ class AppSettingsComponent(defaultExtPattern: String, defaultGlobalPattern: Stri
                 addToTop(styledTextPane)
                 addToBottom(BorderLayoutPanel().apply {
                     marginLeft(5)
-                    addToTop(JBLabel(default).apply {
+                    addToTop(JBLabel(defaultAsHtml).apply {
                         marginTop(2)
                         foreground = JBColor.gray
                         smallFont()

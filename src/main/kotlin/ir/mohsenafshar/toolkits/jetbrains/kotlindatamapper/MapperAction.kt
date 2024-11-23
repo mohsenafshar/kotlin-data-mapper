@@ -12,6 +12,8 @@ import com.intellij.psi.PsiType
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiUtil
+import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.data.AppSettings
+import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.domain.FunctionNamePattern
 import org.jetbrains.kotlin.asJava.classes.KtLightClassForSourceDeclaration
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.base.psi.imports.addImport
@@ -51,12 +53,25 @@ class MapperAction : AnAction() {
                     targetFile = findKtFileByName(project, dialog.getSelectedFileName())
                         ?: (sourceClass as KtLightClassForSourceDeclaration).kotlinOrigin.containingKtFile
 
+                    val settings = AppSettings.instance.state
                     if (isExtensionFunction) {
-                        sb.append("fun ${sourceClass.name}.to${targetClass.name}(): ${targetClass.name} { return ${targetClass.name}(")
+                        val extPattern: String =
+                            settings.userDefinedExtFunctionPattern ?: AppSettings.defaultExtPattern()
+                        val bakedPattern = extPattern
+                            .replace(FunctionNamePattern.SOURCE_PLACEHOLDER, sourceClass.name!!)
+                            .replace(FunctionNamePattern.TARGET_PLACEHOLDER, targetClass.name!!)
+
+                        sb.append("fun ${sourceClass.name}.$bakedPattern(): ${targetClass.name} { return ${targetClass.name}(")
                         build(project, targetClass, sourceClass, "")
                         sb.append(")}")
                     } else {
-                        sb.append("fun map${sourceClass.name}To${targetClass.name}(${sourceClass.name?.decapitalize()}: ${sourceClass.name}): ${targetClass.name} { return ${targetClass.name}(")
+                        val globalPattern: String =
+                            settings.userDefinedGlobalFunctionPattern ?: AppSettings.defaultGlobalPattern()
+                        val bakedPattern = globalPattern
+                            .replace(FunctionNamePattern.SOURCE_PLACEHOLDER, sourceClass.name!!)
+                            .replace(FunctionNamePattern.TARGET_PLACEHOLDER, targetClass.name!!)
+
+                        sb.append("fun $bakedPattern(${sourceClass.name?.decapitalize()}: ${sourceClass.name}): ${targetClass.name} { return ${targetClass.name}(")
                         build(project, targetClass, sourceClass, "")
                         sb.append(")}")
                     }
