@@ -1,16 +1,22 @@
 package ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper
 
+import com.intellij.icons.AllIcons
+import com.intellij.ide.BrowserUtil
 import com.intellij.ide.util.TreeClassChooserFactory
 import com.intellij.ide.util.TreeFileChooserFactory
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.Messages
 import com.intellij.ui.JBColor
+import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextField
 import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.presenter.AppSettingsConfigurable
+import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.utils.marginRight
+import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.utils.marginTop
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.psi.KtClass
@@ -75,12 +81,38 @@ class MapperInfoSelectionDialog(private val project: Project, event: AnActionEve
             add(globalFunctionRadio)
         }
 
+        val myAction: AnAction = object : AnAction("My Custom Action") {
+            override fun actionPerformed(e: AnActionEvent) {
+                openSettingsPanel()
+            }
+        }
+
+
+        // Create a Presentation to define how the button will look
+        val presentation: Presentation = Presentation("Customize Settings")
+        presentation.setIcon(AllIcons.General.Settings) // Set an icon for the button
+
+
+        // Create the ActionButton instance
+        val actionButton = ActionButton(myAction, presentation, ActionPlaces.UNKNOWN, Dimension(40, 40)).marginRight(20)
+
+
+        val settingsRatingRow = JPanel(BorderLayout()).apply {
+            add(actionButton, BorderLayout.WEST)
+            add(JBLabel("Like this version? Please star here: ", SwingConstants.CENTER), BorderLayout.CENTER)
+            add(ActionLink("https://github.com/mohsenafshar/kotlin-data-mapper"){
+                BrowserUtil.browse("https://github.com/mohsenafshar/kotlin-data-mapper")
+            }, BorderLayout.EAST)
+            marginTop(8)
+        }
+
         // Add all components to the main panel
         mainPanel.add(sourcePanel)
         mainPanel.add(targetPanel)
         mainPanel.add(targetFilePanel)
         mainPanel.add(Box.createVerticalStrut(8))
         mainPanel.add(functionTypePanel)
+        mainPanel.add(settingsRatingRow)
 
         return mainPanel
     }

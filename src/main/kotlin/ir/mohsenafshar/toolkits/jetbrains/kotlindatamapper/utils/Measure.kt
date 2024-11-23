@@ -19,6 +19,11 @@ fun <C : JComponent> C.marginLeft(m: Int): C = apply {
     this.border = BorderFactory.createCompoundBorder(border, this.border)
 }
 
+fun <C : JComponent> C.marginRight(m: Int): C = apply {
+    val border = JBEmptyBorder(JBUI.insetsRight(m))
+    this.border = BorderFactory.createCompoundBorder(border, this.border)
+}
+
 fun <C : JComponent> C.marginTop(m: Int): C = apply {
     val border = JBEmptyBorder(JBUI.insetsTop(m))
     this.border = BorderFactory.createCompoundBorder(border, this.border)
