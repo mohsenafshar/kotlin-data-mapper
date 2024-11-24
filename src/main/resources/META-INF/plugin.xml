@@ -35,6 +35,12 @@
                 instance="ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.presenter.AppSettingsConfigurable"
                 id="ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.presenter.AppSettingsConfigurable"
                 displayName="Kotlin Data Mapper"/>
+
+        <notificationGroup id="Kotlin Data Mapper"
+                           displayType="BALLOON"
+                           key="notification.group.kotlindatampper.success"/>
+
+        <errorHandler implementation="com.intellij.diagnostic.JetBrainsMarketplaceErrorReportSubmitter"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
@@ -51,6 +57,7 @@
     </actions>
 
     <extensions defaultExtensionNs="com.intellij">
-        <errorHandler implementation="com.intellij.diagnostic.JetBrainsMarketplaceErrorReportSubmitter"/>
     </extensions>
+
+    <resource-bundle>messages.Bundle</resource-bundle>
 </idea-plugin>
