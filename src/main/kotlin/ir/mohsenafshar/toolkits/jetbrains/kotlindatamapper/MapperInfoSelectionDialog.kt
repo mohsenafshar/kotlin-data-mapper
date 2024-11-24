@@ -1,5 +1,6 @@
 package ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper
 
+import com.intellij.collaboration.ui.util.name
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.util.TreeClassChooserFactory
@@ -23,8 +24,12 @@ import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 import java.awt.*
 import javax.swing.*
+import javax.swing.event.DocumentEvent
+import javax.swing.event.DocumentListener
+import javax.swing.text.Document
 
 
+@Suppress("UnstableApiUsage")
 class MapperInfoSelectionDialog(private val project: Project, event: AnActionEvent) : DialogWrapper(project) {
     private val sourceClassField = JBTextField().apply {
         text = event.getData(CommonDataKeys.PSI_FILE)?.findDescendantOfType<KtClass>()?.kotlinFqName?.asString() ?: ""
@@ -81,21 +86,15 @@ class MapperInfoSelectionDialog(private val project: Project, event: AnActionEve
             add(globalFunctionRadio)
         }
 
-        val myAction: AnAction = object : AnAction("My Custom Action") {
+        val myAction: AnAction = object : AnAction("Open Settings Action") {
             override fun actionPerformed(e: AnActionEvent) {
                 openSettingsPanel()
             }
         }
-
-
-        // Create a Presentation to define how the button will look
-        val presentation: Presentation = Presentation("Customize Settings")
-        presentation.setIcon(AllIcons.General.Settings) // Set an icon for the button
-
-
-        // Create the ActionButton instance
+        val presentation = Presentation("Customize Settings").apply {
+            setIcon(AllIcons.General.Settings)
+        }
         val actionButton = ActionButton(myAction, presentation, ActionPlaces.UNKNOWN, Dimension(40, 40)).marginRight(20)
-
 
         val settingsRatingRow = JPanel(BorderLayout()).apply {
             add(actionButton, BorderLayout.WEST)
@@ -106,6 +105,10 @@ class MapperInfoSelectionDialog(private val project: Project, event: AnActionEve
             marginTop(8)
         }
 
+        sourceClassField.document.onUpdate(::updateOkButtonState)
+        targetClassField.document.onUpdate(::updateOkButtonState)
+        targetFileField.document.onUpdate(::updateOkButtonState)
+
         // Add all components to the main panel
         mainPanel.add(sourcePanel)
         mainPanel.add(targetPanel)
@@ -113,6 +116,9 @@ class MapperInfoSelectionDialog(private val project: Project, event: AnActionEve
         mainPanel.add(Box.createVerticalStrut(8))
         mainPanel.add(functionTypePanel)
         mainPanel.add(settingsRatingRow)
+
+        okAction.isEnabled = false
+        okAction.name = "Generate"
 
         return mainPanel
     }
@@ -161,4 +167,17 @@ class MapperInfoSelectionDialog(private val project: Project, event: AnActionEve
             AppSettingsConfigurable::class.java
         )
     }
+
+    private fun updateOkButtonState(e: DocumentEvent?) {
+        val allFieldsFilled = sourceClassField.text.isNotEmpty() && targetClassField.text.isNotEmpty() && targetFileField.text.isNotEmpty()
+        okAction.isEnabled = allFieldsFilled
+    }
+}
+
+fun Document.onUpdate(action: (DocumentEvent?) -> Unit) {
+    addDocumentListener(object : DocumentListener {
+        override fun insertUpdate(e: DocumentEvent?) = action(e)
+        override fun removeUpdate(e: DocumentEvent?) = action(e)
+        override fun changedUpdate(e: DocumentEvent?) = action(e)
+    })
 }
