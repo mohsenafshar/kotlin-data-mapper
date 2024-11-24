@@ -48,4 +48,8 @@
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
         </action>
     </actions>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <errorHandler implementation="com.intellij.diagnostic.JetBrainsMarketplaceErrorReportSubmitter"/>
+    </extensions>
 </idea-plugin>
