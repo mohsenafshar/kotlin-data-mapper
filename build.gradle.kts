@@ -1,9 +1,12 @@
+import org.jetbrains.changelog.Changelog
+import org.jetbrains.changelog.date
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "1.9.24"
     id("org.jetbrains.intellij.platform")
+    id("org.jetbrains.changelog") version "2.2.1"
 }
 
 group = "ir.mohsenafshar.toolkits.jetbrains"
@@ -23,14 +26,6 @@ dependencies {
 
         pluginVerifier()
         zipSigner()
-    }
-}
-
-
-tasks {
-    patchPluginXml {
-        sinceBuild = "233"
-        untilBuild = provider { null }
     }
 }
 
@@ -61,19 +56,65 @@ intellijPlatform {
         token = System.getenv("PUBLISH_TOKEN")
     }
 
-    pluginVerification {
-        ides {
-            recommended()
-            select {
-                types = listOf(
-                    IntelliJPlatformType.IntellijIdeaCommunity,
-                    IntelliJPlatformType.IntellijIdeaUltimate,
-                    IntelliJPlatformType.AndroidStudio
-                )
-                sinceBuild = "233"
-//                untilBuild = "243.*"
-            }
-        }
+//    pluginVerification {
+//        ides {
+//            recommended()
+//            select {
+//                types = listOf(
+//                    IntelliJPlatformType.IntellijIdeaCommunity,
+//                    IntelliJPlatformType.IntellijIdeaUltimate,
+//                    IntelliJPlatformType.AndroidStudio
+//                )
+//                sinceBuild = "233"
+////                untilBuild = "243.*"
+//            }
+//        }
+//    }
+}
+
+//changelog {
+//    version.set(project.version.toString()) // Syncs with your plugin's version
+//    path.set(file("${project.projectDir}/CHANGELOG.md").canonicalPath) // Points to your changelog file
+//    header.set(provider { "[${version.get()}] - ${date()}" }) // Define header format for new versions
+//    headerParserRegex.set("""## (\d+\.\d+\.\S+) - (\d{4}-\d{2}-\d{2})""".toRegex()) // Regex for parsing version headers
+//    itemPrefix.set("-") // Prefix for entries in each changelog section
+//    keepUnreleasedSection.set(true) // Retain the Unreleased section
+//    unreleasedTerm.set("[Unreleased]") // Label for the unreleased section
+//    groups.set(listOf("Feature", "Bug Fix", "Improvement", "Removal")) // Group categories
+//    combinePreReleases.set(true) // Combine pre-releases into the main release
+//}
+
+changelog {
+    version.set(project.version.toString())
+    path.set(file("${project.projectDir}/CHANGELOG.md").canonicalPath)
+    header.set(provider { "[${version.get()}] - ${date()}" })
+    headerParserRegex.set("""(\d+\.\d+\.\d+(-[a-zA-Z0-9]+)?)""".toRegex())
+    itemPrefix.set("-")
+    keepUnreleasedSection.set(true)
+    unreleasedTerm.set("[Unreleased]")
+    groups.set(listOf("Feature", "Bug Fix", "Improvement", "Removal"))
+    combinePreReleases.set(true)
+}
+
+tasks {
+    patchPluginXml {
+        sinceBuild = "233"
+        untilBuild = provider { null }
+
+        changeNotes.set(provider {
+            val version = project.version.toString() // Get the version from the project
+            val changelogItem = changelog.get(version) // Get the changelog item for that version
+            val rendered = changelog.renderItem(
+                changelogItem,
+                Changelog.OutputType.HTML
+            )
+            println("Rendered Change Notes: $rendered")
+            rendered
+        })
+    }
+
+    publishPlugin {
+        dependsOn(patchChangelog)
     }
 }
 
