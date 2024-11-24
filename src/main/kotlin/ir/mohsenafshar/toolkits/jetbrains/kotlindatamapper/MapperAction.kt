@@ -6,8 +6,6 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.ui.popup.BalloonBuilder
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -15,8 +13,6 @@ import com.intellij.psi.PsiType
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiUtil
-import com.intellij.ui.BalloonImpl
-import com.intellij.ui.GotItTooltip
 import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.data.AppSettings
 import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.domain.FunctionNamePattern
 import org.jetbrains.kotlin.asJava.classes.KtLightClassForSourceDeclaration
@@ -90,9 +86,17 @@ class MapperAction : AnAction() {
                             .notify(project)
                     }
                 } else {
+                    val notFoundClass =
+                        if (sourceClass == null) sourceClassName
+                        else targetClassName
+
                     NotificationGroupManager.getInstance()
                         .getNotificationGroup("Kotlin Data Mapper")
-                        .createNotification("Generating failed","One of the classes ($sourceClassName or $targetClassName) was not found", NotificationType.ERROR)
+                        .createNotification(
+                            "Generating failed",
+                            "The \'$notFoundClass\' class was not found",
+                            NotificationType.ERROR
+                        )
                         .notify(project)
                 }
             }
