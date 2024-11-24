@@ -6,6 +6,7 @@ import com.intellij.util.text.findTextRange
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBUI
 import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.utils.margin
+import org.jetbrains.kotlin.idea.debugger.core.LOG
 import org.jetbrains.kotlin.tools.projectWizard.wizard.ui.addBorder
 import java.awt.BasicStroke
 import java.awt.BorderLayout
@@ -51,7 +52,7 @@ class StyledTextPane(private val sourcePlaceHolder: String, private val targetPl
                 }
 
                 override fun changedUpdate(e: DocumentEvent?) {
-                    println("changedUpdate")
+                    LOG.info(("changedUpdate"))
                 }
             })
         }
@@ -80,7 +81,7 @@ class StyledTextPane(private val sourcePlaceHolder: String, private val targetPl
     }
 
     fun repaintStyle(where: String = "") {
-        println("Text changed at $where: ${textPane.text}")
+        LOG.info("Text changed at $where: ${textPane.text}")
         SwingUtilities.invokeLater {
             textPane.styledDocument.setCharacterAttributes(0, textPane.text.length, defaultStyle, true)
 

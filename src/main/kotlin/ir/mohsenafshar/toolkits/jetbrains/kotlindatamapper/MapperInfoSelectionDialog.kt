@@ -10,7 +10,6 @@ import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.openapi.ui.Messages
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBLabel
@@ -22,7 +21,9 @@ import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
-import java.awt.*
+import java.awt.BorderLayout
+import java.awt.Color
+import java.awt.Dimension
 import javax.swing.*
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
@@ -99,7 +100,7 @@ class MapperInfoSelectionDialog(private val project: Project, event: AnActionEve
         val settingsRatingRow = JPanel(BorderLayout()).apply {
             add(actionButton, BorderLayout.WEST)
             add(JBLabel("Like this version? Please star here: ", SwingConstants.CENTER), BorderLayout.CENTER)
-            add(ActionLink("https://github.com/mohsenafshar/kotlin-data-mapper"){
+            add(ActionLink("https://github.com/mohsenafshar/kotlin-data-mapper") {
                 BrowserUtil.browse("https://github.com/mohsenafshar/kotlin-data-mapper")
             }, BorderLayout.EAST)
             marginTop(8)
@@ -169,7 +170,8 @@ class MapperInfoSelectionDialog(private val project: Project, event: AnActionEve
     }
 
     private fun updateOkButtonState(e: DocumentEvent?) {
-        val allFieldsFilled = sourceClassField.text.isNotEmpty() && targetClassField.text.isNotEmpty() && targetFileField.text.isNotEmpty()
+        val allFieldsFilled =
+            sourceClassField.text.isNotEmpty() && targetClassField.text.isNotEmpty() && targetFileField.text.isNotEmpty()
         okAction.isEnabled = allFieldsFilled
     }
 }
