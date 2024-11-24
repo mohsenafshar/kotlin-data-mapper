@@ -43,7 +43,8 @@
 
     <actions>
         <action id="GenerateMapperAction" class="ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.MapperAction"
-                text="Generate Mapping Function"
+                text="Generate Mapping Function..."
+                icon="/icons/pluginIcon.svg"
                 description="Automatically generates a function to map properties from one Kotlin data class to another.">
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
         </action>
