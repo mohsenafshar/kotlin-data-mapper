@@ -1,5 +1,6 @@
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.date
+import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
 plugins {
     id("java")
@@ -8,8 +9,8 @@ plugins {
     id("org.jetbrains.changelog") version "2.2.1"
 }
 
-group = "ir.mohsenafshar.toolkits.jetbrains"
-version = "0.2.0-beta2"
+group = providers.gradleProperty("pluginGroup").get()
+version = providers.gradleProperty("pluginVersion").get()
 
 
 dependencies {
@@ -17,14 +18,16 @@ dependencies {
 //        intellijIdeaCommunity("2024.2.4")
         local("H:\\Program Files\\JetBrains\\IntelliJ IDEA Community Edition 2024.2.4")
 
+        bundledPlugins(providers.gradleProperty("platformBundledPlugins").map { it.split(',') })
+
+        // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file for plugin from JetBrains Marketplace.
+        plugins(providers.gradleProperty("platformPlugins").map { it.split(',') })
+
         jetbrainsRuntime()
         instrumentationTools()
-
-        bundledPlugin("com.intellij.java")
-        bundledPlugin("org.jetbrains.kotlin")
-
         pluginVerifier()
         zipSigner()
+        testFramework(TestFrameworkType.Platform)
     }
 }
 
@@ -35,7 +38,7 @@ intellijPlatform {
 
     pluginConfiguration {
         ideaVersion {
-            sinceBuild = "233"
+            sinceBuild = providers.gradleProperty("pluginSinceBuild")
         }
     }
 
@@ -65,21 +68,30 @@ intellijPlatform {
 //    }
 }
 
+//changelog {
+//    version.set(project.version.toString())
+//    path.set(file("${project.projectDir}/CHANGELOG.md").canonicalPath)
+//    header.set(provider { "[${version.get()}] - ${date()}" })
+//    headerParserRegex.set("""(\d+\.\d+\.\d+(-[a-zA-Z0-9]+)?)""".toRegex())
+//    itemPrefix.set("-")
+//    keepUnreleasedSection.set(true)
+//    unreleasedTerm.set("[Unreleased]")
+//    groups.set(listOf("Feature", "Bug Fix", "Improvement", "Removal"))
+//    combinePreReleases.set(true)
+//}
+
 changelog {
-    version.set(project.version.toString())
-    path.set(file("${project.projectDir}/CHANGELOG.md").canonicalPath)
-    header.set(provider { "[${version.get()}] - ${date()}" })
-    headerParserRegex.set("""(\d+\.\d+\.\d+(-[a-zA-Z0-9]+)?)""".toRegex())
-    itemPrefix.set("-")
-    keepUnreleasedSection.set(true)
-    unreleasedTerm.set("[Unreleased]")
-    groups.set(listOf("Feature", "Bug Fix", "Improvement", "Removal"))
-    combinePreReleases.set(true)
+    groups.empty()
+    repositoryUrl = providers.gradleProperty("pluginRepositoryUrl")
 }
 
 tasks {
+    wrapper {
+        gradleVersion = providers.gradleProperty("gradleVersion").get()
+    }
+
     patchPluginXml {
-        sinceBuild = "233"
+        sinceBuild = providers.gradleProperty("pluginSinceBuild")
         untilBuild = provider { null }
 
         changeNotes.set(provider {
