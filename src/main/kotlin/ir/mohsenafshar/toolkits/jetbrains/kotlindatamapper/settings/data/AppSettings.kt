@@ -38,7 +38,7 @@ class AppSettings : PersistentStateComponent<AppSettings.State> {
 
     companion object {
         val instance: AppSettings
-            get() = ApplicationManager.getApplication().service<AppSettings>()
+            get() = ApplicationManager.getApplication().getService(AppSettings::class.java)
 
         fun defaultExtPattern(): String = instance.extensionFunctionNamePattern.defaultPattern()
         fun defaultExtPatternAsHtml(): String = instance.extensionFunctionNamePattern.defaultPatternAsHtml()
