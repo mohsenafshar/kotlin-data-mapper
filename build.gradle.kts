@@ -15,8 +15,8 @@ version = providers.gradleProperty("pluginVersion").get()
 
 dependencies {
     intellijPlatform {
-//        intellijIdeaCommunity("2024.2.4")
-        local("H:\\Program Files\\JetBrains\\IntelliJ IDEA Community Edition 2024.2.4")
+        intellijIdeaCommunity("2024.2.4")
+//        local("H:\\Program Files\\JetBrains\\IntelliJ IDEA Community Edition 2024.2.4")
 
         bundledPlugins(providers.gradleProperty("platformBundledPlugins").map { it.split(',') })
 
