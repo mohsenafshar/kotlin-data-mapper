@@ -119,6 +119,10 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      # Ensure gradlew is executable
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
       # Run tests
       - name: Run Tests
         run: ./gradlew check
@@ -203,6 +207,10 @@ jobs:
       # Setup Gradle
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+
+      # Ensure gradlew is executable
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
 
       # Cache Plugin Verifier IDEs
       - name: Setup Plugin Verifier IDEs Cache
