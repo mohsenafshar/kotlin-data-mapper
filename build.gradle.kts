@@ -1,10 +1,9 @@
 import org.jetbrains.changelog.Changelog
-import org.jetbrains.changelog.date
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
 plugins {
-    id("java")
-    id("org.jetbrains.kotlin.jvm") version "1.9.24"
+    java
+    kotlin("jvm") version "2.0.20"
     id("org.jetbrains.intellij.platform")
     id("org.jetbrains.changelog") version "2.2.1"
 }
@@ -12,6 +11,39 @@ plugins {
 group = providers.gradleProperty("pluginGroup").get()
 version = providers.gradleProperty("pluginVersion").get()
 
+configurations {
+    implementation {
+        exclude(group = "io.ktor")
+        exclude(group = "com.jetbrains.infra")
+        exclude(group = "com.jetbrains.intellij.remoteDev")
+    }
+}
+
+sourceSets {
+
+//    named("test") {
+//        kotlin.srcDirs("src/uiTest/kotlin")
+//        resources {
+//            srcDirs("src/uiTest/resources")
+//            include("**/*.*")
+//        }
+//    }
+
+//    create("uiTest") {
+//        kotlin.srcDir("src/uiTest/kotlin")
+//        resources.srcDir("src/uiTest/resources")
+//        compileClasspath += sourceSets["main"].output + configurations["uiTestCompileClasspath"]
+//        runtimeClasspath += output + configurations["uiTestRuntimeClasspath"]
+//    }
+}
+
+//    named("test") {
+//        kotlin.srcDirs("src/uiTest/kotlin")
+//        resources {
+//            srcDirs("src/uiTest/resources")
+//            include("**/*.*")
+//        }
+//    }
 
 dependencies {
     intellijPlatform {
@@ -30,7 +62,35 @@ dependencies {
         testFramework(TestFrameworkType.Platform)
     }
 
+    // IntelliJ IDEA testing tools
+    testImplementation("com.jetbrains.intellij.tools:ide-starter-squashed:LATEST-EAP-SNAPSHOT")
+    testImplementation("com.jetbrains.intellij.tools:ide-starter-junit5:LATEST-EAP-SNAPSHOT")
+    testImplementation("com.jetbrains.intellij.tools:ide-metrics-collector:LATEST-EAP-SNAPSHOT")
+    testImplementation("com.jetbrains.intellij.tools:ide-metrics-collector-starter:LATEST-EAP-SNAPSHOT")
+    testImplementation("com.jetbrains.intellij.tools:ide-performance-testing-commands:LATEST-EAP-SNAPSHOT")
+    testImplementation("com.jetbrains.intellij.tools:ide-starter-driver:LATEST-EAP-SNAPSHOT")
+    testImplementation("com.jetbrains.intellij.driver:driver-client:LATEST-EAP-SNAPSHOT")
+    testImplementation("com.jetbrains.intellij.driver:driver-sdk:LATEST-EAP-SNAPSHOT")
+    testImplementation("com.jetbrains.intellij.driver:driver-model:LATEST-EAP-SNAPSHOT")
+
+    // Dependency Injection
+    testImplementation("org.kodein.di:kodein-di-jvm:7.20.2")
+
+    // Testing frameworks
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.10.2") // For JUnit 4 compatibility
+    testImplementation("org.junit.platform:junit-platform-launcher:1.10.2")
+
+    // Utilities
+    testImplementation("commons-io:commons-io:2.15.0")
+    testImplementation("com.fasterxml.jackson.core:jackson-databind:2.16.0")
+
+    // Analytics
+    testImplementation("com.jetbrains.fus.reporting:ap-validation:76")
+    testImplementation("com.jetbrains.fus.reporting:model:76")
+
+//    testImplementation("com.intellij.remoterobot:remote-robot:0.11.23")
 }
 
 intellijPlatform {
@@ -111,4 +171,68 @@ tasks {
     publishPlugin {
         dependsOn(patchChangelog)
     }
+
+    test {
+        useJUnitPlatform()
+
+        testLogging {
+            events("passed", "skipped", "failed", "standardOut", "standardError")
+        }
+
+        exclude("ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.uitest")
+    }
+
+//    register<Test>("uiTest") {
+//        useJUnitPlatform()
+//
+//        testLogging {
+//            events("passed", "skipped", "failed", "standardOut", "standardError")
+//        }
+//
+//        // Include only the uiTest package
+//        include("ir/mohsenafshar/toolkits/jetbrains/kotlindatamapper/uitest/**")
+//
+//        // Set classpath for uiTest source set
+//        testClassesDirs = sourceSets["test"].output.classesDirs
+//        classpath = sourceSets["test"].runtimeClasspath
+//    }
+
+//    register<Test>("uiTest") {
+//        useJUnitPlatform()
+//        testLogging {
+//            events("passed", "skipped", "failed", "standardOut", "standardError")
+//        }
+//
+//        testClassesDirs = sourceSets["uiTest"].output.classesDirs
+//        classpath = sourceSets["uiTest"].runtimeClasspath
+//    }
+
+    register<Test>("unitTest") {
+        description = "Runs Unit tests"
+        group = "verification"
+
+        include("ir/mohsenafshar/toolkits/jetbrains/kotlindatamapper/unittest/**")
+        exclude("ir/mohsenafshar/toolkits/jetbrains/kotlindatamapper/uitest/**")
+
+//        testClassesDirs = sourceSets["uiTest"].output.classesDirs
+//        classpath = sourceSets["uiTest"].runtimeClasspath
+
+        useJUnitPlatform()
+    }
+
+    register<Test>("uiTest") {
+        description = "Runs UI tests"
+        group = "verification"
+
+        include("ir/mohsenafshar/toolkits/jetbrains/kotlindatamapper/uitest/**")
+        exclude("ir/mohsenafshar/toolkits/jetbrains/kotlindatamapper/unittest/**")
+
+//        testClassesDirs = sourceSets["uiTest"].output.classesDirs
+//        classpath = sourceSets["uiTest"].runtimeClasspath
+        useJUnitPlatform()
+    }
+}
+
+kotlin {
+    jvmToolchain(17)
 }
