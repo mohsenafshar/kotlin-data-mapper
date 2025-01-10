@@ -34,13 +34,14 @@ class DialogTest {
                 ).withVersion("2024.2.4")
             )
             .apply {
-                val pathToPlugin = "build/distributions/KotlinDataMapper-0.3.0.zip" //System.getProperty()
+                val pathToPlugin = System.getProperty("path.to.build.plugin")
                 PluginConfigurator(this).installPluginFromPath(Path(pathToPlugin))
-                this.applyVMOptionsPatch {
-                    addSystemProperty("-Dcom.sun.management.jmxremote.port", "7777")
-                }
+//                disableAutoImport()   // use this after a stable version released
+//                allowSkippingFullScanning(true)
+//                skipIndicesInitialization(true)
+//                disableAutoSetupJavaProject()
             }.runIdeWithDriver().useDriverAndCloseIde {
-                waitForIndicators(1.minutes)
+                waitForIndicators(5.minutes)
 
                 openFile("src/main/kotlin/ir/mohsenafshar/toolkits/jetbrains/kotlindatamapper/Test.kt")
 
@@ -48,11 +49,11 @@ class DialogTest {
 
                 ideFrame {
                     dialog(xpath = "//div[@class='MyDialog']") {
-                        assert(
+                        shouldBe("Generate button is disabled") {
                             x {
                                 byText("Generate")
                             }.isEnabled().not()
-                        )
+                        }
                     }
                 }
             }
@@ -67,7 +68,7 @@ class DialogTest {
                 ).withVersion("2024.2.4")
             )
             .apply {
-                val pathToPlugin = "build/distributions/KotlinDataMapper-0.3.0.zip" //System.getProperty()
+                val pathToPlugin = "build/distributions/KotlinDataMapper-0.3.0.zip"
                 PluginConfigurator(this).installPluginFromPath(Path(pathToPlugin))
             }.runIdeWithDriver().useDriverAndCloseIde {
                 welcomeScreen {

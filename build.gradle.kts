@@ -11,6 +11,11 @@ plugins {
 group = providers.gradleProperty("pluginGroup").get()
 version = providers.gradleProperty("pluginVersion").get()
 
+kotlin {
+    jvmToolchain(17)
+}
+
+
 configurations {
     implementation {
         exclude(group = "io.ktor")
@@ -19,31 +24,6 @@ configurations {
     }
 }
 
-sourceSets {
-
-//    named("test") {
-//        kotlin.srcDirs("src/uiTest/kotlin")
-//        resources {
-//            srcDirs("src/uiTest/resources")
-//            include("**/*.*")
-//        }
-//    }
-
-//    create("uiTest") {
-//        kotlin.srcDir("src/uiTest/kotlin")
-//        resources.srcDir("src/uiTest/resources")
-//        compileClasspath += sourceSets["main"].output + configurations["uiTestCompileClasspath"]
-//        runtimeClasspath += output + configurations["uiTestRuntimeClasspath"]
-//    }
-}
-
-//    named("test") {
-//        kotlin.srcDirs("src/uiTest/kotlin")
-//        resources {
-//            srcDirs("src/uiTest/resources")
-//            include("**/*.*")
-//        }
-//    }
 
 dependencies {
     intellijPlatform {
@@ -78,8 +58,8 @@ dependencies {
 
     // Testing frameworks
     testImplementation("junit:junit:4.13.2")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
-    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.10.2") // For JUnit 4 compatibility
+    testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.11.4") // For JUnit 4 compatibility
     testImplementation("org.junit.platform:junit-platform-launcher:1.10.2")
 
     // Utilities
@@ -90,7 +70,8 @@ dependencies {
     testImplementation("com.jetbrains.fus.reporting:ap-validation:76")
     testImplementation("com.jetbrains.fus.reporting:model:76")
 
-//    testImplementation("com.intellij.remoterobot:remote-robot:0.11.23")
+    // to fix: Provider com.intellij.tests.JUnit5TestSessionListener could not be instantiated - for uiTest
+    testImplementation("com.jetbrains.intellij.junit:junit-rt:243.22562.220")
 }
 
 intellijPlatform {
@@ -179,60 +160,41 @@ tasks {
             events("passed", "skipped", "failed", "standardOut", "standardError")
         }
 
-        exclude("ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.uitest")
+        systemProperty("path.to.build.plugin", buildPlugin.get().archiveFile.get().asFile.absolutePath)
+
+        include("ir/mohsenafshar/toolkits/jetbrains/kotlindatamapper/unittest/**")
+        exclude("ir/mohsenafshar/toolkits/jetbrains/kotlindatamapper/uitest/**")
     }
-
-//    register<Test>("uiTest") {
-//        useJUnitPlatform()
-//
-//        testLogging {
-//            events("passed", "skipped", "failed", "standardOut", "standardError")
-//        }
-//
-//        // Include only the uiTest package
-//        include("ir/mohsenafshar/toolkits/jetbrains/kotlindatamapper/uitest/**")
-//
-//        // Set classpath for uiTest source set
-//        testClassesDirs = sourceSets["test"].output.classesDirs
-//        classpath = sourceSets["test"].runtimeClasspath
-//    }
-
-//    register<Test>("uiTest") {
-//        useJUnitPlatform()
-//        testLogging {
-//            events("passed", "skipped", "failed", "standardOut", "standardError")
-//        }
-//
-//        testClassesDirs = sourceSets["uiTest"].output.classesDirs
-//        classpath = sourceSets["uiTest"].runtimeClasspath
-//    }
 
     register<Test>("unitTest") {
         description = "Runs Unit tests"
         group = "verification"
 
+        useJUnitPlatform()
+
+        testLogging {
+            events("passed", "skipped", "failed", "standardOut", "standardError")
+        }
+
         include("ir/mohsenafshar/toolkits/jetbrains/kotlindatamapper/unittest/**")
         exclude("ir/mohsenafshar/toolkits/jetbrains/kotlindatamapper/uitest/**")
 
-//        testClassesDirs = sourceSets["uiTest"].output.classesDirs
-//        classpath = sourceSets["uiTest"].runtimeClasspath
-
-        useJUnitPlatform()
+        systemProperty("path.to.build.plugin", buildPlugin.get().archiveFile.get().asFile.absolutePath)
     }
 
     register<Test>("uiTest") {
         description = "Runs UI tests"
         group = "verification"
 
+        useJUnitPlatform()
+
+        testLogging {
+            events("passed", "skipped", "failed", "standardOut", "standardError")
+        }
+
         include("ir/mohsenafshar/toolkits/jetbrains/kotlindatamapper/uitest/**")
         exclude("ir/mohsenafshar/toolkits/jetbrains/kotlindatamapper/unittest/**")
 
-//        testClassesDirs = sourceSets["uiTest"].output.classesDirs
-//        classpath = sourceSets["uiTest"].runtimeClasspath
-        useJUnitPlatform()
+        systemProperty("path.to.build.plugin", buildPlugin.get().archiveFile.get().asFile.absolutePath)
     }
-}
-
-kotlin {
-    jvmToolchain(17)
 }
