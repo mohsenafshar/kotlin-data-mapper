@@ -20,6 +20,14 @@ dependencyResolutionManagement {
     repositories {
         mavenCentral()
 
+        maven { url = uri("https://cache-redirector.jetbrains.com/maven-central") }
+        maven { url = uri("https://cache-redirector.jetbrains.com/intellij-dependencies") }
+        maven { url = uri("https://cache-redirector.jetbrains.com/download.jetbrains.com/teamcity-repository") }
+        maven { url = uri("https://www.jetbrains.com/intellij-repository/releases") }
+        maven { url = uri("https://www.jetbrains.com/intellij-repository/snapshots") }
+        maven { url = uri("https://download.jetbrains.com/teamcity-repository") }
+        maven { url = uri("https://cache-redirector.jetbrains.com/packages.jetbrains.team/maven/p/grazi/grazie-platform-public") }
+
         intellijPlatform {
             defaultRepositories()
             jetbrainsRuntime()
