@@ -6,13 +6,12 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiType
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.util.PsiUtil
 import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.data.AppSettings
 import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.domain.FunctionNamePattern
+import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.utils.asPsiClass
+import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.utils.isKotlinDataClass
 import org.jetbrains.kotlin.asJava.classes.KtLightClassForSourceDeclaration
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.base.psi.imports.addImport
@@ -22,7 +21,6 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
-import java.util.Locale
 
 class MapperGenerator(private val project: Project) {
     private var targetFile: KtFile? = null
@@ -54,7 +52,13 @@ class MapperGenerator(private val project: Project) {
             }
 
             try {
-                appendGeneratedCode(project, textFunction = resultFunction, appendTo = targetFileName, sourceClass, targetClass)
+                appendGeneratedCode(
+                    project,
+                    textFunction = resultFunction,
+                    appendTo = targetFileName,
+                    sourceClass,
+                    targetClass
+                )
             } finally {
                 NotificationGroupManager.getInstance()
                     .getNotificationGroup("Kotlin Data Mapper")
@@ -157,7 +161,11 @@ class MapperGenerator(private val project: Project) {
                     )
                     sb.append(")")
                 }
-            } else {
+            }
+//            else if(sourceField.type.asPsiClass().typeParameterList) {
+//
+//            }
+            else {
                 if (targetField == null) {
                     sb.append("${sourceField.name} = null,")
                 } else {
@@ -184,21 +192,4 @@ class MapperGenerator(private val project: Project) {
 
         return ktFile
     }
-
-    private fun PsiElement?.isKotlinDataClass(): Boolean {
-        this ?: return false
-
-        if (this is KtLightClassForSourceDeclaration) {
-            return kotlinOrigin.isData()
-        }
-        return false
-    }
-
-    private fun PsiType.asPsiClass(): PsiClass? = PsiUtil.resolveClassInType(this)
-}
-
-fun String.decapitalize(): String = replaceFirstChar {
-    it.lowercase(
-        Locale.getDefault()
-    )
 }
