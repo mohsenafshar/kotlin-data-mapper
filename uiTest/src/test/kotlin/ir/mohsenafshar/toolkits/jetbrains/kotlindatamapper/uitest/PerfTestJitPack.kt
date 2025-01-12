@@ -1,4 +1,4 @@
-package ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper
+package ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.uitest
 
 import com.intellij.driver.client.Remote
 import com.intellij.driver.sdk.getOpenProjects

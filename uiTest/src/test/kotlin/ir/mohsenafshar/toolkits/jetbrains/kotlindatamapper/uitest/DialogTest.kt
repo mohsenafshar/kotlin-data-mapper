@@ -35,7 +35,8 @@ class DialogTest {
             )
             .apply {
                 val pathToPlugin = System.getProperty("path.to.build.plugin")
-                PluginConfigurator(this).installPluginFromPath(Path(pathToPlugin))
+                println("THE PLUGIN PATH ISSSSSSSSSSSSSSSSSSSSSSSSSS: $pathToPlugin")
+                PluginConfigurator(this).installPluginFromPath(kotlin.io.path.Path("build/distributions/KotlinDataMapper-0.3.0.zip"))
 //                disableAutoImport()   // use this after a stable version released
 //                allowSkippingFullScanning(true)
 //                skipIndicesInitialization(true)
@@ -69,7 +70,7 @@ class DialogTest {
             )
             .apply {
                 val pathToPlugin = "build/distributions/KotlinDataMapper-0.3.0.zip"
-                PluginConfigurator(this).installPluginFromPath(Path(pathToPlugin))
+                PluginConfigurator(this).installPluginFromPath(kotlin.io.path.Path(pathToPlugin))
             }.runIdeWithDriver().useDriverAndCloseIde {
                 welcomeScreen {
                     clickPlugins()
