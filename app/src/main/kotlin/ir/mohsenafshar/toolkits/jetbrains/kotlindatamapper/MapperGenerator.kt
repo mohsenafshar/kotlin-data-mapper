@@ -163,7 +163,7 @@ class MapperGenerator(private val project: Project) {
                     sb.append(")")
                 }
             }
-//            else if(sourceField.type.asPsiClass().typeParameterList) {
+//            else if(sourceField.isKotlinListWithAnyParameterType()) {
 //
 //            }
             else {

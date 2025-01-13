@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtParameter
 
 /**
@@ -88,6 +89,10 @@ fun PsiField.isKotlinListWithParameterTypeOf(parameterTypeString: String): Boole
     return this.type.presentableText == "List<$parameterTypeString>"
 }
 
+fun PsiField.isKotlinListWithAnyParameterType(): Boolean {
+    return this.type.presentableText.matches(Regex("List<.*>"))
+}
+
 fun PsiType.isListType(): Boolean {
     if (this is PsiClassType) {
         val resolvedClass = this.resolve()
@@ -98,7 +103,7 @@ fun PsiType.isListType(): Boolean {
 
 
 
-fun extractListInfo(ktElement: KtElement) {
+fun extractListParameterType(ktElement: KtElement) {
     ApplicationManager.getApplication().executeOnPooledThread {
         ReadAction.run<Throwable> {
             analyze(ktElement) {
@@ -120,3 +125,28 @@ fun extractListInfo(ktElement: KtElement) {
         }
     }
 }
+
+suspend fun PsiField.extractListParameterType(): KtClass? {
+    val ktElement: KtDeclaration = (this as KtLightFieldForSourceDeclarationSupport).kotlinOrigin!!
+        return readAction {
+            analyze(ktElement) {
+                val type = ktElement.expectedType
+                val isList = ((ktElement as KtParameter).symbol as KaValueParameterSymbol).returnType.isClassType(
+                    ClassId.fromString("kotlin/collections/List")
+                )
+                val argType =
+                    ((ktElement.symbol as KaValueParameterSymbol).returnType as KaClassType).typeArguments.first().type
+
+
+                val argClass = ((argType as KaClassType).symbol as KaClassSymbol).sourcePsi<KtClass>()
+                println(argClass?.name)
+                println(argClass?.isData())
+                argClass
+            }
+    }
+}
+
+data class ListInfoHolder(
+    val parameterType: KtClass?,
+    val containingFile: KtFile?,
+)
