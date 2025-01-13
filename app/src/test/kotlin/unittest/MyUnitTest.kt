@@ -1,4 +1,4 @@
-package ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.unittest
+package unittest
 
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.psi.xml.XmlFile

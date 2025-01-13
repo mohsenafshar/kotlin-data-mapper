@@ -1,4 +1,4 @@
-package ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.unittest
+package unittest
 
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.TestDataPath

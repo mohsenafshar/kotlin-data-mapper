@@ -11,6 +11,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.data.AppSettings
 import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.domain.FunctionNamePattern
 import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.utils.asPsiClass
+import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.utils.decapitalize
 import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.utils.isKotlinDataClass
 import org.jetbrains.kotlin.asJava.classes.KtLightClassForSourceDeclaration
 import org.jetbrains.kotlin.idea.KotlinFileType
