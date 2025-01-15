@@ -2,17 +2,14 @@ package ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper
 
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import ir.mohsenafshar.toolkits.jetbrains.ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.MapperProjectService
 
 
 class MapperAction : AnAction() {
 
-    private lateinit var mapperGenerator: MapperGenerator
-
     override fun actionPerformed(event: AnActionEvent) {
         val project = event.project ?: return
         val dialog = MapperInfoSelectionDialog(project, event)
-
-        mapperGenerator = MapperGenerator(project)
 
         if (dialog.showAndGet()) {
             val (sourceClassName, targetClassName) = dialog.getSelectedClasses()
@@ -20,12 +17,8 @@ class MapperAction : AnAction() {
             val targetFileName = dialog.getSelectedFileName()!! // TODO: HANDLE NULL
 
             if (sourceClassName != null && targetClassName != null) {
-                mapperGenerator.generate(
-                    isExtensionFunction,
-                    targetFileName,
-                    sourceClassName,
-                    targetClassName,
-                )
+                val mapperConfig = MapperConfig(isExtensionFunction, targetFileName, sourceClassName, targetClassName)
+                project.getService(MapperProjectService::class.java).generate(mapperConfig)
             }
         }
     }
