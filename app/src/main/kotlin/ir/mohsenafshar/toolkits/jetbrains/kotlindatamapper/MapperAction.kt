@@ -17,7 +17,7 @@ class MapperAction : AnAction() {
             val targetFileName = dialog.getSelectedFileName()!! // TODO: HANDLE NULL
 
             if (sourceClassName != null && targetClassName != null) {
-                val mapperConfig = MapperConfig(isExtensionFunction, targetFileName, sourceClassName, targetClassName)
+                val mapperConfig = MapperGenerator.Config(isExtensionFunction, targetFileName, sourceClassName, targetClassName)
                 project.getService(MapperProjectService::class.java).generate(mapperConfig)
             }
         }

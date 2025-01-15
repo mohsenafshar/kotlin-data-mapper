@@ -3,11 +3,12 @@ package ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.utils
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
-import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiClassType
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiField
-import com.intellij.psi.PsiType
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.*
+import com.intellij.psi.search.FilenameIndex
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.search.PsiShortNamesCache
 import com.intellij.psi.util.PsiUtil
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.symbols.KaClassSymbol
@@ -16,12 +17,52 @@ import org.jetbrains.kotlin.analysis.api.symbols.sourcePsi
 import org.jetbrains.kotlin.analysis.api.types.KaClassType
 import org.jetbrains.kotlin.asJava.classes.KtLightClassForSourceDeclaration
 import org.jetbrains.kotlin.asJava.elements.KtLightFieldForSourceDeclarationSupport
+import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.psi.KtDeclaration
-import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtParameter
+import org.jetbrains.kotlin.psi.*
+
+/**
+ * @param   className   Must contains packageName
+ */
+suspend fun findPsiClassByFQName(project: Project, className: String): PsiClass? = readAction {
+    JavaPsiFacade.getInstance(project)
+        .findClass(className, GlobalSearchScope.allScope(project))
+}
+
+suspend fun findPsiClassByShortName(project: Project, className: String): PsiClass? = readAction {
+    val allClasses: Array<PsiClass> =
+        PsiShortNamesCache.getInstance(project).getClassesByName(className, GlobalSearchScope.allScope(project))
+    allClasses.first()  // todo: handle cases where multiple files found and not found any
+}
+
+suspend fun findKtFileByName(project: Project, fileName: String?): KtFile? {
+    fileName ?: return null
+
+    val ktExtension = KotlinFileType.INSTANCE.defaultExtension
+    return readAction {
+        val candidateFiles: Collection<VirtualFile> =
+            FilenameIndex.getVirtualFilesByName(fileName, GlobalSearchScope.allScope(project))
+
+        val ktFile: KtFile? = candidateFiles.find { virtualFile ->
+            virtualFile.extension == ktExtension && virtualFile.toPsiFile(project) is KtFile
+        }?.toPsiFile(project) as KtFile?
+        ktFile
+    }
+}
+
+suspend fun findPsiClassByName(project: Project, fileName: String): KtFile? {
+    val ktExtension = KotlinFileType.INSTANCE.defaultExtension
+    return readAction {
+        val candidateFiles: Collection<VirtualFile> =
+            FilenameIndex.getVirtualFilesByName(fileName, GlobalSearchScope.allScope(project))
+
+        val ktFile: KtFile? = candidateFiles.find { virtualFile ->
+            virtualFile.extension == ktExtension && virtualFile.toPsiFile(project) is KtFile
+        }?.toPsiFile(project) as KtFile?
+        ktFile
+    }
+}
 
 /**
  * Checks if the receiver is a Kotlin data class.
@@ -102,7 +143,6 @@ fun PsiType.isListType(): Boolean {
 }
 
 
-
 fun extractListParameterType(ktElement: KtElement) {
     ApplicationManager.getApplication().executeOnPooledThread {
         runReadAction {
@@ -128,21 +168,21 @@ fun extractListParameterType(ktElement: KtElement) {
 
 suspend fun PsiField.extractListParameterType(): KtClass? {
     val ktElement: KtDeclaration = (this as KtLightFieldForSourceDeclarationSupport).kotlinOrigin!!
-        return readAction {
-            analyze(ktElement) {
-                val type = ktElement.expectedType
-                val isList = ((ktElement as KtParameter).symbol as KaValueParameterSymbol).returnType.isClassType(
-                    ClassId.fromString("kotlin/collections/List")
-                )
-                val argType =
-                    ((ktElement.symbol as KaValueParameterSymbol).returnType as KaClassType).typeArguments.first().type
+    return readAction {
+        analyze(ktElement) {
+            val type = ktElement.expectedType
+            val isList = ((ktElement as KtParameter).symbol as KaValueParameterSymbol).returnType.isClassType(
+                ClassId.fromString("kotlin/collections/List")
+            )
+            val argType =
+                ((ktElement.symbol as KaValueParameterSymbol).returnType as KaClassType).typeArguments.first().type
 
 
-                val argClass = ((argType as KaClassType).symbol as KaClassSymbol).sourcePsi<KtClass>()
-                println(argClass?.name)
-                println(argClass?.isData())
-                argClass
-            }
+            val argClass = ((argType as KaClassType).symbol as KaClassSymbol).sourcePsi<KtClass>()
+            println(argClass?.name)
+            println(argClass?.isData())
+            argClass
+        }
     }
 }
 

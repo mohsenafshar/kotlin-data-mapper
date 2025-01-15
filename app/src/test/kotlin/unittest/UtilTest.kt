@@ -1,9 +1,13 @@
 package unittest
 
+import com.intellij.psi.PsiClass
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.search.PsiShortNamesCache
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.TestDataPath
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.utils.extractListParameterType
+import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.utils.findPsiClassByFQName
 import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.utils.isKotlinListWithAnyParameterType
 import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.utils.isKotlinListWithParameterTypeOf
 import kotlinx.coroutines.runBlocking
@@ -13,6 +17,22 @@ import org.jetbrains.kotlin.psi.*
 
 @TestDataPath("\$CONTENT_ROOT/src/test/testData")
 class UtilTest : BasePlatformTestCase() {
+
+    fun testFindPsiClassByFullyQualifiedName() = runBlocking {
+        val file = myFixture.configureByFile("UserDTO.kt")
+        val ktFile = assertInstanceOf(file, KtFile::class.java)
+        assertEquals("feature.data.model", ktFile.packageFqName.asString())
+
+        val searchResult = findPsiClassByFQName(project, "${ktFile.packageFqName.asString()}.UserDTO")
+        assertNotNull(searchResult)
+    }
+
+    fun testFindPsiClassByShortStringName() = runBlocking {
+        myFixture.configureByFile("UserDTO.kt")
+
+        val allClasses: Array<PsiClass> = PsiShortNamesCache.getInstance(project).getClassesByName("UserDTO", GlobalSearchScope.allScope(project))
+        assert(allClasses.isNotEmpty())
+    }
 
     fun testListTypeWithSpecificParameterType() = runBlocking {
         val file = myFixture.configureByFile("UserDTO.kt")
