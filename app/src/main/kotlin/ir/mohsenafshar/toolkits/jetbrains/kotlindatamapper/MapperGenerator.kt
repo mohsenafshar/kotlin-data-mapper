@@ -2,10 +2,12 @@ package ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper
 
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
-import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.application.readAction
+import com.intellij.openapi.command.writeCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiType
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.settings.data.AppSettings
@@ -23,16 +25,23 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 
-class MapperGenerator(private val project: Project) {
+data class MapperConfig(
+    val isExtensionFunction: Boolean,
+    val targetFileName: String,
+    val sourceClassName: String,
+    val targetClassName: String
+)
+
+class MapperGenerator(
+    private val project: Project,
+    private val config: MapperConfig,
+) {
     private var targetFile: KtFile? = null
     private var prefix = "this"
+    private var pattern = "this"
 
-    fun generate(
-        isExtensionFunction: Boolean,
-        targetFileName: String,
-        sourceClassName: String,
-        targetClassName: String
-    ) {
+    suspend fun generate() {
+        val (isExtensionFunction, targetFileName, sourceClassName, targetClassName) = config
         val sourceClass = findPsiClass(project, sourceClassName)
         val targetClass = findPsiClass(project, targetClassName)
 
@@ -45,10 +54,12 @@ class MapperGenerator(private val project: Project) {
             val resultFunction = if (isExtensionFunction) {
                 val extPattern: String =
                     settings.userDefinedExtFunctionPattern ?: AppSettings.defaultExtPattern()
+                pattern = extPattern
                 generateAsExtensionFunction(project, sourceClass, targetClass, extPattern)
             } else {
                 val globalPattern: String =
                     settings.userDefinedGlobalFunctionPattern ?: AppSettings.defaultGlobalPattern()
+                pattern = globalPattern
                 generateAsGlobalFunction(project, sourceClass, targetClass, globalPattern)
             }
 
@@ -82,7 +93,7 @@ class MapperGenerator(private val project: Project) {
         }
     }
 
-    private fun generateAsExtensionFunction(
+    private suspend fun generateAsExtensionFunction(
         project: Project, sourceClass: PsiClass, targetClass: PsiClass, extPattern: String
     ): String {
         val sb = StringBuilder()
@@ -91,12 +102,12 @@ class MapperGenerator(private val project: Project) {
             .replace(FunctionNamePattern.TARGET_PLACEHOLDER, targetClass.name!!)
 
         sb.append("fun ${sourceClass.name}.$bakedPattern(): ${targetClass.name} { return ${targetClass.name}(")
-        walkThroughSourceClassFieldsTree(project, sb, targetClass, sourceClass, "")
+        walkThroughSourceClassFieldsTree(project, sb, sourceClass, targetClass, "")
         sb.append(")}")
         return sb.toString()
     }
 
-    private fun generateAsGlobalFunction(
+    private suspend fun generateAsGlobalFunction(
         project: Project, sourceClass: PsiClass, targetClass: PsiClass, globalPattern: String
     ): String {
         val sb = StringBuilder()
@@ -105,23 +116,25 @@ class MapperGenerator(private val project: Project) {
             .replace(FunctionNamePattern.TARGET_PLACEHOLDER, targetClass.name!!)
 
         sb.append("fun $bakedPattern(${sourceClass.name?.decapitalize()}: ${sourceClass.name}): ${targetClass.name} { return ${targetClass.name}(")
-        walkThroughSourceClassFieldsTree(project, sb, targetClass, sourceClass, "")
+        walkThroughSourceClassFieldsTree(project, sb, sourceClass, targetClass, "")
         sb.append(")}")
         return sb.toString()
     }
 
-    private fun appendGeneratedCode(
+    private suspend fun appendGeneratedCode(
         project: Project,
         textFunction: String,
         appendTo: String?,
         sourceClass: PsiClass,
         targetClass: PsiClass
     ) {
-        WriteCommandAction.runWriteCommandAction(project) {
-            val psiFactory = KtPsiFactory(project)
+        val containingFile =
+            targetFile
+                ?: findKtFileByName(project, appendTo)
+                ?: (sourceClass as KtLightClassForSourceDeclaration).kotlinOrigin.containingKtFile
 
-            val containingFile = targetFile ?: findKtFileByName(project, appendTo)
-            ?: (sourceClass as KtLightClassForSourceDeclaration).kotlinOrigin.containingKtFile
+        writeCommandAction(project, "AppendGeneratedCode") {
+            val psiFactory = KtPsiFactory(project)
 
             containingFile.findDescendantOfType<KtFunction> {
                 it.name?.contains("to${targetClass.name}") ?: false && it.receiverTypeReference?.text == sourceClass.name
@@ -134,62 +147,81 @@ class MapperGenerator(private val project: Project) {
         }
     }
 
-    private fun walkThroughSourceClassFieldsTree(
+    private suspend fun walkThroughSourceClassFieldsTree(
         project: Project,
         sb: StringBuilder,
         sourceClass: PsiClass,
         targetClass: PsiClass,
         parentChainName: String,
     ) {
-        WriteCommandAction.runWriteCommandAction(project) {
-            sourceClass.kotlinFqName?.let { targetFile?.addImport(it, false, null, project) }
+        writeCommandAction(project, "AddImport") {
+            targetClass.kotlinFqName?.let { targetFile?.addImport(it, false, null, project) }
         }
 
-        sourceClass.fields.forEach { sourceField ->
-            val targetField = targetClass.fields.find { it.name == sourceField.name }
+        targetClass.fields.forEach { targetField ->
+            val sourceField = sourceClass.fields.find { it.name == targetField.name }
 
-            if (sourceField.type.asPsiClass().isKotlinDataClass()) {
-                if (targetField == null || targetField.type.asPsiClass().isKotlinDataClass().not()) {
-                    sb.append("${sourceField.name} = null,")
-                } else {
-                    sb.append("${sourceField.name} = ${sourceField.type.asPsiClass()?.name}(")
+            if (sourceField == null) {
+                sb.append("${targetField.name} = null,")
+            } else {
+                val targetFieldType: PsiType = targetField.type
+                val sourceFieldType: PsiType = sourceField.type
+
+                if (targetFieldType.asPsiClass().isKotlinDataClass()) {
+                    sb.append("${targetField.name} = ${targetFieldType.asPsiClass()?.name}(")
                     walkThroughSourceClassFieldsTree(
                         project,
                         sb,
-                        sourceField.type.asPsiClass()!!,
-                        targetField.type.asPsiClass()!!,
-                        "$parentChainName.${sourceField.name}",
+                        sourceFieldType.asPsiClass()!!,
+                        targetFieldType.asPsiClass()!!,
+                        "$parentChainName.${targetField.name}",
                     )
-                    sb.append(")")
-                }
-            }
-//            else if(sourceField.isKotlinListWithAnyParameterType()) {
-//
-//            }
-            else {
-                if (targetField == null) {
-                    sb.append("${sourceField.name} = null,")
+                    sb.append(")" + ",")
                 } else {
-                    sb.append("${sourceField.name} = ${prefix}${parentChainName}.${sourceField.name}" + ",")
+                    sb.append("${targetField.name} = ${prefix}${parentChainName}.${targetField.name}" + ",")
                 }
             }
-
         }
+
+
+//            else if (sourceField != null && sourceField.isKotlinListWithAnyParameterType()) {
+//                val ktClass = sourceField.extractListParameterType()!!
+//                val sourceClassName = ktClass.name!!
+//                val targetClassName = ktClass.name!!.replace("DTO", "")
+//                val bakedPattern = pattern
+//                    .replace(FunctionNamePattern.SOURCE_PLACEHOLDER, sourceClassName)
+//                    .replace(FunctionNamePattern.TARGET_PLACEHOLDER, targetClassName)
+//
+//                sb.append("${targetField.name} = ${prefix}${parentChainName}.${targetField.name}.map($sourceClassName::$bakedPattern)" + ",")
+//                MapperGenerator(
+//                    project,
+//                    MapperConfig(
+//                        true,
+//                        ktClass.containingFile.name,
+//                        ktClass.fqName!!.asString(),
+//                        "domain." + targetClassName
+//                    )
+//                ).generate(
+//
+//                )
+//            }
     }
 
-    private fun findPsiClass(project: Project, className: String): PsiClass? {
-        return JavaPsiFacade.getInstance(project)
+    private suspend fun findPsiClass(project: Project, className: String): PsiClass? = readAction {
+        JavaPsiFacade.getInstance(project)
             .findClass(className, GlobalSearchScope.allScope(project))
     }
 
-    private fun findKtFileByName(project: Project, fileName: String?): KtFile? {
+    private suspend fun findKtFileByName(project: Project, fileName: String?): KtFile? {
         fileName ?: return null
 
         val ktExtension = KotlinFileType.INSTANCE.defaultExtension
-        val ktFile: KtFile? =
-            FilenameIndex.getVirtualFilesByName(fileName, GlobalSearchScope.allScope(project)).find { virtualFile ->
-                virtualFile.extension == ktExtension && virtualFile.toPsiFile(project) is KtFile
-            }?.toPsiFile(project) as KtFile?
+        val candidateFiles =
+            readAction { FilenameIndex.getVirtualFilesByName(fileName, GlobalSearchScope.allScope(project)) }
+
+        val ktFile: KtFile? = candidateFiles.find { virtualFile ->
+            virtualFile.extension == ktExtension && virtualFile.toPsiFile(project) is KtFile
+        }?.toPsiFile(project) as KtFile?
 
         return ktFile
     }
