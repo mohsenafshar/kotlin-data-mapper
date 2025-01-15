@@ -64,7 +64,8 @@ tasks.test {
         events("passed", "skipped", "failed", "standardOut", "standardError")
     }
 
-    systemProperty("path.to.build.plugin", tasks.buildPlugin.get().archiveFile.get().asFile.absolutePath)
+//    systemProperty("path.to.build.plugin", tasks.buildPlugin.get().archiveFile.get().asFile.absolutePath)
+    systemProperty("path.to.build.plugin", "H:\\Project\\java\\data-mapper\\DataMapper\\app\\build\\distributions\\app-0.3.0.zip")
 }
 
 kotlin {

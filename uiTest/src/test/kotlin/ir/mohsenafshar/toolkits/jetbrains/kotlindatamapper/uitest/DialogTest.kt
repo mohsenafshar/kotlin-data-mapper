@@ -22,6 +22,7 @@ import kotlin.time.Duration.Companion.minutes
 
 class DialogTest {
 
+    // todo: handle hardcoded paths
     @Test
     fun checkDialogGenerateButtonInitialState_isDisabled() {
         val projectDir = Path("H:\\Project\\java\\data-mapper\\DataMapper")
@@ -35,8 +36,7 @@ class DialogTest {
             )
             .apply {
                 val pathToPlugin = System.getProperty("path.to.build.plugin")
-                println("THE PLUGIN PATH ISSSSSSSSSSSSSSSSSSSSSSSSSS: $pathToPlugin")
-                PluginConfigurator(this).installPluginFromPath(kotlin.io.path.Path("H:\\Project\\java\\data-mapper\\DataMapper\\app\\build\\distributions\\app-0.3.0.zip"))
+                PluginConfigurator(this).installPluginFromPath(kotlin.io.path.Path(pathToPlugin))
 //                disableAutoImport()   // use this after a stable version released
 //                allowSkippingFullScanning(true)
 //                skipIndicesInitialization(true)
@@ -69,7 +69,7 @@ class DialogTest {
                 ).withVersion("2024.2.4")
             )
             .apply {
-                val pathToPlugin = "H:\\Project\\java\\data-mapper\\DataMapper\\app\\build\\distributions\\app-0.3.0.zip"
+                val pathToPlugin = System.getProperty("path.to.build.plugin")
                 PluginConfigurator(this).installPluginFromPath(kotlin.io.path.Path(pathToPlugin))
             }.runIdeWithDriver().useDriverAndCloseIde {
                 welcomeScreen {
