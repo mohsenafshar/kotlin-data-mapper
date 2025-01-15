@@ -1,8 +1,8 @@
 package ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.utils
 
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiElement
@@ -105,7 +105,7 @@ fun PsiType.isListType(): Boolean {
 
 fun extractListParameterType(ktElement: KtElement) {
     ApplicationManager.getApplication().executeOnPooledThread {
-        ReadAction.run<Throwable> {
+        runReadAction {
             analyze(ktElement) {
                 val type = ktElement.expectedType
                 val isList = ((ktElement as KtParameter).symbol as KaValueParameterSymbol).returnType.isClassType(
