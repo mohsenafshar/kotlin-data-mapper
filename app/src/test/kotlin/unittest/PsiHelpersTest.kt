@@ -16,7 +16,7 @@ import org.jetbrains.kotlin.psi.*
 
 
 @TestDataPath("\$CONTENT_ROOT/src/test/testData")
-class UtilTest : BasePlatformTestCase() {
+class PsiHelpersTest : BasePlatformTestCase() {
 
     fun testFindPsiClassByFullyQualifiedName() = runBlocking {
         val file = myFixture.configureByFile("UserDTO.kt")
