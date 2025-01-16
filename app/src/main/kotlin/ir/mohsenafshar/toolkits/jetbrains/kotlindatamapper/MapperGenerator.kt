@@ -48,7 +48,7 @@ class MapperGenerator(
                     targetClass, targetClassName.split(".").last(),
                     extPattern
                 )
-                generateAsExtensionFunction(project, mapperClassInfo)
+                generateAsExtensionFunction(mapperClassInfo)
             } else {
                 val globalPattern: String =
                     settings.userDefinedGlobalFunctionPattern ?: AppSettings.defaultGlobalPattern()
@@ -58,7 +58,7 @@ class MapperGenerator(
                     targetClass, targetClassName.split(".").last(),
                     globalPattern
                 )
-                generateAsGlobalFunction(project, mapperClassInfo)
+                generateAsGlobalFunction(mapperClassInfo)
             }
 
             try {
@@ -91,8 +91,8 @@ class MapperGenerator(
         }
     }
 
-    private suspend fun generateAsExtensionFunction(
-        project: Project, mapperClassesInfo: MapperClassInfoHolder
+    suspend fun generateAsExtensionFunction(
+        mapperClassesInfo: MapperClassInfoHolder
     ): String {
         val bakedPattern = mapperClassesInfo.pattern
             .replace(FunctionNamePattern.SOURCE_PLACEHOLDER, mapperClassesInfo.sourceClassName)
@@ -105,7 +105,7 @@ class MapperGenerator(
     }
 
     private suspend fun generateAsGlobalFunction(
-        project: Project, mapperClassesInfo: MapperClassInfoHolder
+        mapperClassesInfo: MapperClassInfoHolder
     ): String {
         val bakedPattern = mapperClassesInfo.pattern
             .replace(FunctionNamePattern.SOURCE_PLACEHOLDER, mapperClassesInfo.sourceClassName)
