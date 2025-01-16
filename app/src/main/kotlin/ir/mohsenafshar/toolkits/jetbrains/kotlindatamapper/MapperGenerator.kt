@@ -26,14 +26,25 @@ class MapperGenerator(
     private val sb = StringBuilder()
     private var targetFile: KtFile? = null
     private var prefix = "this"
-    private var pattern = "this"
+    private var pattern = AppSettings.defaultExtPattern()
 
     suspend fun generate() {
         val (isExtensionFunction, targetFileName, sourceClassName, targetClassName) = config
         val sourceClass = findPsiClassByFQName(project, sourceClassName)
         val targetClass = findPsiClassByFQName(project, targetClassName)
 
-        if (sourceClass != null && targetClass != null) {
+        if (sourceClass == null || targetClass == null) {
+            val notFoundClass = if (sourceClass == null) sourceClassName else targetClassName
+
+            NotificationGroupManager.getInstance()
+                .getNotificationGroup("Kotlin Data Mapper")
+                .createNotification(
+                    "Generating failed",
+                    "The \'$notFoundClass\' class was not found",
+                    NotificationType.ERROR
+                )
+                .notify(project)
+        } else {
             prefix = if (isExtensionFunction) "this" else sourceClass.name!!.decapitalize()
             targetFile = findKtFileByName(project, targetFileName)
                 ?: (sourceClass as KtLightClassForSourceDeclaration).kotlinOrigin.containingKtFile
@@ -61,33 +72,12 @@ class MapperGenerator(
                 generateAsGlobalFunction(mapperClassInfo)
             }
 
-            try {
-                appendGeneratedCode(
-                    project,
-                    textFunction = resultFunction,
-                    appendTo = targetFileName,
-                    sourceClass,
-                    targetClass
-                )
-            } finally {
-                NotificationGroupManager.getInstance()
-                    .getNotificationGroup("Kotlin Data Mapper")
-                    .createNotification("Mapping function generated", NotificationType.INFORMATION)
-                    .notify(project)
-            }
-        } else {
-            val notFoundClass =
-                if (sourceClass == null) sourceClassName
-                else targetClassName
-
-            NotificationGroupManager.getInstance()
-                .getNotificationGroup("Kotlin Data Mapper")
-                .createNotification(
-                    "Generating failed",
-                    "The \'$notFoundClass\' class was not found",
-                    NotificationType.ERROR
-                )
-                .notify(project)
+            appendGeneratedCode(
+                textFunction = resultFunction,
+                appendTo = targetFileName,
+                sourceClass,
+                targetClass
+            )
         }
     }
 
@@ -118,7 +108,6 @@ class MapperGenerator(
     }
 
     private suspend fun appendGeneratedCode(
-        project: Project,
         textFunction: String,
         appendTo: String?,
         sourceClass: PsiClass,

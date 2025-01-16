@@ -1,5 +1,7 @@
 package ir.mohsenafshar.toolkits.jetbrains.ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper
 
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.MapperGenerator
@@ -13,7 +15,14 @@ class MapperProjectService(
 ) {
     fun generate(mapperConfig: MapperGenerator.Config) {
         cs.launch {
-            MapperGenerator(project, mapperConfig).generate()
+            try {
+                MapperGenerator(project, mapperConfig).generate()
+            } finally {
+                NotificationGroupManager.getInstance()
+                    .getNotificationGroup("Kotlin Data Mapper")
+                    .createNotification("Mapping function generated", NotificationType.INFORMATION)
+                    .notify(project)
+            }
         }
     }
 }
