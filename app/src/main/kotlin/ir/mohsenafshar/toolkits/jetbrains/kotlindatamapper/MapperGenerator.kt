@@ -24,12 +24,12 @@ class MapperGenerator(
     private val config: Config,
 ) {
     private val sb = StringBuilder()
-    private var targetFile: KtFile? = null
+    private var destinationFile: KtFile? = null
     private var prefix = "this"
     private var pattern = AppSettings.defaultExtPattern()
 
     suspend fun generate() {
-        val (isExtensionFunction, targetFileName, sourceClassName, targetClassName) = config
+        val (isExtensionFunction, destinationFileName, sourceClassName, targetClassName) = config
         val sourceClass = findPsiClassByFQName(project, sourceClassName)
         val targetClass = findPsiClassByFQName(project, targetClassName)
 
@@ -46,7 +46,7 @@ class MapperGenerator(
                 .notify(project)
         } else {
             prefix = if (isExtensionFunction) "this" else sourceClass.name!!.decapitalize()
-            targetFile = findKtFileByName(project, targetFileName)
+            destinationFile = findKtFileByName(project, destinationFileName)
                 ?: (sourceClass as KtLightClassForSourceDeclaration).kotlinOrigin.containingKtFile
 
             val settings = AppSettings.instance.state
@@ -74,7 +74,7 @@ class MapperGenerator(
 
             appendGeneratedCode(
                 textFunction = resultFunction,
-                appendTo = targetFileName,
+                appendTo = destinationFileName,
                 sourceClass,
                 targetClass
             )
@@ -113,22 +113,22 @@ class MapperGenerator(
         sourceClass: PsiClass,
         targetClass: PsiClass
     ) {
-        val containingFile =
-            targetFile
-                ?: findKtFileByName(project, appendTo)
-                ?: (sourceClass as KtLightClassForSourceDeclaration).kotlinOrigin.containingKtFile
+        destinationFile ?: throw NullPointerException("DestinationFile is not specified!")
+        val containingFile = destinationFile!!
 
         writeCommandAction(project, "AppendGeneratedCode") {
             val psiFactory = KtPsiFactory(project)
 
-            containingFile.findDescendantOfType<KtFunction> {
-                it.name?.contains("to${targetClass.name}") ?: false && it.receiverTypeReference?.text == sourceClass.name
-            }?.apply {
-                delete()
+            val currentFun = containingFile.findDescendantOfType<KtFunction> {
+                it.name?.contains("to${targetClass.name}") == true && it.receiverTypeReference?.text == sourceClass.name
             }
 
             val newFunction = psiFactory.createFunction(textFunction)
-            containingFile.add(newFunction)
+            if (currentFun == null) {
+                containingFile.add(newFunction)
+            } else {
+                currentFun.replace(newFunction)
+            }
         }
     }
 
@@ -139,7 +139,7 @@ class MapperGenerator(
         parentChainName: String,
     ) {
         writeCommandAction(project, "AddImport") {
-            targetClass.kotlinFqName?.let { targetFile?.addImport(it, false, null, project) }
+            targetClass.kotlinFqName?.let { destinationFile?.addImport(it, false, null, project) }
         }
 
         val targetFields = readAction { targetClass.fields }
@@ -175,7 +175,7 @@ class MapperGenerator(
                         object {
                             val sourceClassName = sourceKtClass.name!!
                             val targetClassName = targetKtClass.name!!
-                            val sourceClassContainingFileName = sourceKtClass.containingFile.name
+                            val destinationFileName = sourceKtClass.containingFile.name // todo(Important): i have to find and append packageName in cases there are two files with the same name
                             val sourceFQName = sourceKtClass.fqName!!.asString()
                             val targetFQName = targetKtClass.fqName!!.asString()
                         }
@@ -191,7 +191,7 @@ class MapperGenerator(
                         project,
                         Config(
                             true,
-                            data.sourceClassContainingFileName,
+                            data.destinationFileName,
                             data.sourceFQName,
                             data.targetFQName,
                         )
@@ -206,7 +206,7 @@ class MapperGenerator(
 
     data class Config(
         val isExtensionFunction: Boolean,
-        val targetFileName: String,
+        val destinationFileName: String,
         val sourceClassName: String,
         val targetClassName: String
     )

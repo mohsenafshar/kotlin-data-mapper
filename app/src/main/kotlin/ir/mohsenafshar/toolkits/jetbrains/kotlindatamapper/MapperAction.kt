@@ -14,10 +14,10 @@ class MapperAction : AnAction() {
         if (dialog.showAndGet()) {
             val (sourceClassName, targetClassName) = dialog.getSelectedClasses()
             val isExtensionFunction = dialog.isExtensionFunctionSelected()
-            val targetFileName = dialog.getSelectedFileName()!! // TODO: HANDLE NULL
+            val destinationFileName = dialog.getSelectedFileName()!! // TODO: HANDLE NULL
 
             if (sourceClassName != null && targetClassName != null) {
-                val mapperConfig = MapperGenerator.Config(isExtensionFunction, targetFileName, sourceClassName, targetClassName)
+                val mapperConfig = MapperGenerator.Config(isExtensionFunction, destinationFileName, sourceClassName, targetClassName)
                 project.getService(MapperProjectService::class.java).generate(mapperConfig)
             }
         }

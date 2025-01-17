@@ -20,6 +20,7 @@ import ir.mohsenafshar.toolkits.jetbrains.kotlindatamapper.utils.marginTop
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 import java.awt.BorderLayout
 import java.awt.Color
@@ -36,8 +37,10 @@ class MapperInfoSelectionDialog(private val project: Project, event: AnActionEve
         text = event.getData(CommonDataKeys.PSI_FILE)?.findDescendantOfType<KtClass>()?.kotlinFqName?.asString() ?: ""
     }
     private val targetClassField = JBTextField()
-    private val targetFileField = JBTextField().apply {
-        text = event.getData(CommonDataKeys.PSI_FILE)?.name ?: ""
+    private val destinationFileField = JBTextField().apply {
+        val ktFile = event.getData(CommonDataKeys.PSI_FILE) as? KtFile?
+        val packageName = ktFile?.packageFqName?.asString().takeIf { string -> string.isNullOrEmpty().not() }.run { "$this." }
+        text = packageName + ktFile?.name
     }
     private val extensionFunctionRadio = JRadioButton("Extension Function", true)
     private val globalFunctionRadio = JRadioButton("Global Function")
@@ -67,10 +70,10 @@ class MapperInfoSelectionDialog(private val project: Project, event: AnActionEve
         }
 
         // Target Class Selection Panel
-        val targetFilePanel = JPanel(BorderLayout()).apply {
+        val destinationFilePanel = JPanel(BorderLayout()).apply {
             add(JBLabel("Generate in :   ", SwingConstants.LEFT), BorderLayout.WEST)
-            add(targetFileField, BorderLayout.CENTER)
-            add(createSelectFileButton(targetFileField, "Select Mapper Function File"), BorderLayout.EAST)
+            add(destinationFileField, BorderLayout.CENTER)
+            add(createSelectFileButton(destinationFileField, "Select Mapper Function File"), BorderLayout.EAST)
         }
 
         // Function Type Selection Panel
@@ -108,12 +111,12 @@ class MapperInfoSelectionDialog(private val project: Project, event: AnActionEve
 
         sourceClassField.document.onUpdate(::updateOkButtonState)
         targetClassField.document.onUpdate(::updateOkButtonState)
-        targetFileField.document.onUpdate(::updateOkButtonState)
+        destinationFileField.document.onUpdate(::updateOkButtonState)
 
         // Add all components to the main panel
         mainPanel.add(sourcePanel)
         mainPanel.add(targetPanel)
-        mainPanel.add(targetFilePanel)
+        mainPanel.add(destinationFilePanel)
         mainPanel.add(Box.createVerticalStrut(8))
         mainPanel.add(functionTypePanel)
         mainPanel.add(settingsRatingRow)
@@ -155,7 +158,7 @@ class MapperInfoSelectionDialog(private val project: Project, event: AnActionEve
     }
 
     fun getSelectedFileName(): String? {
-        return targetFileField.text
+        return destinationFileField.text
     }
 
     fun isExtensionFunctionSelected(): Boolean {
@@ -171,7 +174,7 @@ class MapperInfoSelectionDialog(private val project: Project, event: AnActionEve
 
     private fun updateOkButtonState(e: DocumentEvent?) {
         val allFieldsFilled =
-            sourceClassField.text.isNotEmpty() && targetClassField.text.isNotEmpty() && targetFileField.text.isNotEmpty()
+            sourceClassField.text.isNotEmpty() && targetClassField.text.isNotEmpty() && destinationFileField.text.isNotEmpty()
         okAction.isEnabled = allFieldsFilled
     }
 }
