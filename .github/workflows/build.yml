@@ -40,6 +40,10 @@ jobs:
       - name: Fetch Sources
         uses: actions/checkout@v4
 
+      # Replace gradle.properties with CI-specific properties
+      - name: Replace gradle.properties with CI-specific properties
+        run: mv gradle-ci.properties gradle.properties
+
       # Validate wrapper
       - name: Gradle Wrapper Validation
         uses: gradle/actions/wrapper-validation@v3
@@ -77,7 +81,7 @@ jobs:
 
       # Build plugin
       - name: Build plugin
-        run: ./gradlew :app:buildPlugin
+        run: ./gradlew :app:buildPlugin -PisCI=true
 
       # Prepare plugin archive content for creating artifact
       - name: Prepare Plugin Artifact
@@ -125,7 +129,7 @@ jobs:
 
       # Run tests
       - name: Run Tests
-        run: ./gradlew :app:test
+        run: ./gradlew :app:test -PisCI=true
 
       # Collect Tests Result of failed tests
       - name: Collect Tests Result

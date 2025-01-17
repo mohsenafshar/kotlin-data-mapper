@@ -1,3 +1,4 @@
+import org.gradle.internal.classpath.Instrumented.systemProperty
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
@@ -19,8 +20,12 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
 
     intellijPlatform {
-//        intellijIdeaCommunity("2024.2.4")
-        local("H:\\Program Files\\JetBrains\\IntelliJ IDEA Community Edition 2024.2.4")
+        val isCI = providers.systemProperty("isCI")
+        if (isCI.isPresent) {
+            intellijIdeaCommunity("2024.2.4")
+        } else {
+            local("H:\\Program Files\\JetBrains\\IntelliJ IDEA Community Edition 2024.2.4")
+        }
 
         bundledPlugins(providers.gradleProperty("platformBundledPlugins").map { it.split(',') })
 
