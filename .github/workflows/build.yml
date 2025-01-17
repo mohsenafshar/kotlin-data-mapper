@@ -81,7 +81,7 @@ jobs:
 
       # Build plugin
       - name: Build plugin
-        run: ./gradlew :app:buildPlugin -PisCI=true
+        run: ./gradlew :app:buildPlugin -DisCI=true
 
       # Prepare plugin archive content for creating artifact
       - name: Prepare Plugin Artifact
@@ -129,7 +129,7 @@ jobs:
 
       # Run tests
       - name: Run Tests
-        run: ./gradlew :app:test -PisCI=true
+        run: ./gradlew :app:test -DisCI=true
 
       # Collect Tests Result of failed tests
       - name: Collect Tests Result
