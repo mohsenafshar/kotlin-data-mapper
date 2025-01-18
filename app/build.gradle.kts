@@ -1,6 +1,8 @@
-import org.gradle.internal.classpath.Instrumented.systemProperty
 import org.jetbrains.changelog.Changelog
+import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
+
+val isCI = providers.systemProperty("isCI")
 
 plugins {
     java
@@ -20,7 +22,6 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
 
     intellijPlatform {
-        val isCI = providers.systemProperty("isCI")
         if (isCI.isPresent) {
             intellijIdeaCommunity("2024.2.4")
         } else {
@@ -60,20 +61,22 @@ intellijPlatform {
         token = System.getenv("PUBLISH_TOKEN")
     }
 
-//    pluginVerification {
-//        ides {
-//            recommended()
-//            select {
-//                types = listOf(
-//                    IntelliJPlatformType.IntellijIdeaCommunity,
-//                    IntelliJPlatformType.IntellijIdeaUltimate,
-//                    IntelliJPlatformType.AndroidStudio
-//                )
-//                sinceBuild = "233"
-////                untilBuild = "243.*"
-//            }
-//        }
-//    }
+    if (isCI.isPresent) {
+        pluginVerification {
+            ides {
+                recommended()
+                select {
+                    types = listOf(
+                        IntelliJPlatformType.IntellijIdeaCommunity,
+                        IntelliJPlatformType.IntellijIdeaUltimate,
+                        IntelliJPlatformType.AndroidStudio
+                    )
+//                    sinceBuild = "233"
+//                untilBuild = "243.*"
+                }
+            }
+        }
+    }
 }
 
 //changelog {
