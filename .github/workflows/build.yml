@@ -34,6 +34,7 @@ jobs:
       version: ${{ steps.properties.outputs.version }}
       changelog: ${{ steps.properties.outputs.changelog }}
       pluginVerifierHomeDir: ${{ steps.properties.outputs.pluginVerifierHomeDir }}
+      artifactUrl: ${{ steps.artifact-upload-step.outputs.artifact-url }}
     steps:
 
       # Check out the current repository
@@ -96,6 +97,7 @@ jobs:
 
       # Store already-built plugin as an artifact for downloading
       - name: Upload artifact
+        id: artifact-upload-step
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.artifact.outputs.filename }}
@@ -107,7 +109,6 @@ jobs:
     needs: [ build ]
     runs-on: ubuntu-latest
     steps:
-
       # Check out the current repository
       - name: Fetch Sources
         uses: actions/checkout@v4
@@ -129,7 +130,9 @@ jobs:
 
       # Run tests
       - name: Run Tests
-        run: ./gradlew :app:test -DisCI=true
+        env:
+          ARTIFACT_URL: ${{needs.build.outputs.artifactUrl}}
+        run: ./gradlew :app:test -DisCI=true -DpluginUrl=$ARTIFACT_URL
 
       # Collect Tests Result of failed tests
       - name: Collect Tests Result
@@ -221,11 +224,11 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ needs.build.outputs.pluginVerifierHomeDir }}/ides
-          key: plugin-verifier-${{ hashFiles('build/listProductsReleases.txt') }}
+          key: plugin-verifier-${{ hashFiles('app/build/listProductsReleases.txt') }}
 
       # Run Verify Plugin task and IntelliJ Plugin Verifier tool
       - name: Run Plugin Verification tasks
-        run: ./gradlew verifyPlugin -DisCI=true -Dplugin.verifier.home.dir=${{ needs.build.outputs.pluginVerifierHomeDir }}
+        run: ./gradlew :app:verifyPlugin -DisCI=true -Dplugin.verifier.home.dir=${{ needs.build.outputs.pluginVerifierHomeDir }}
 
       # Collect Plugin Verifier Result
       - name: Collect Plugin Verifier Result
